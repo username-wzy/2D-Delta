@@ -72,6 +72,13 @@ export function render(ctx, canvas, camera, state) {
     }
   }
 
+  for (const grenade of state.grenades || []) {
+    const t = Math.min(1, grenade.age / grenade.flightTime), lift = Math.sin(t * Math.PI) * 40;
+    ctx.beginPath(); ctx.arc(grenade.x,grenade.y,7,0,Math.PI*2); ctx.fillStyle='#24281f'; ctx.fill();
+    ctx.font='20px sans-serif'; ctx.fillText('🧨',grenade.x-10,grenade.y-lift+6);
+    ctx.beginPath(); ctx.arc(grenade.x,grenade.y,12,0,Math.PI*2*grenade.age/grenade.fuse); ctx.strokeStyle='#d87558'; ctx.lineWidth=2; ctx.stroke();
+  }
+
   // 5b. Containers
   for (const c of containers) {
     const cAlpha = c.isOpen ? 0.3 : 0.6;
@@ -186,6 +193,7 @@ export function render(ctx, canvas, camera, state) {
 
   // 10. Crosshair (screen space)
   drawCrosshair(ctx, mouse, player);
+  drawMinimap(ctx, canvas, state);
 
   ctx.restore(); // shake/root
 }
@@ -223,13 +231,15 @@ function drawCheckerboard(ctx, canvas, camera, ts) {
 }
 
 function drawExtraction(ctx, ext) {
-  ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
-  ctx.strokeStyle = '#10b981';
+  ctx.fillStyle = ext.condition === 'paid' ? 'rgba(217,182,110,0.12)' : 'rgba(193,233,129,0.12)';
+  ctx.strokeStyle = ext.condition === 'paid' ? '#d9b66e' : '#c1e981';
   ctx.lineWidth = 3;
   ctx.setLineDash([8, 4]);
   ctx.fillRect(ext.x, ext.y, ext.w, ext.h);
   ctx.strokeRect(ext.x, ext.y, ext.w, ext.h);
   ctx.setLineDash([]);
+  ctx.fillStyle = '#e5eadf'; ctx.font = '13px sans-serif';
+  ctx.fillText(`${ext.name || '撤离点'} · ${ext.condition === 'paid' ? '₡' + ext.cost.toLocaleString() : '免费'} · ${ext.duration || 10}s`,ext.x,ext.y-10);
   const fontSize = Math.min(ext.w, ext.h) * 0.5;
   ctx.font = `${fontSize}px sans-serif`;
   ctx.fillText(ext.emoji || '🚁', ext.x + ext.w / 2 - fontSize * 0.4, ext.y + ext.h / 2 + fontSize * 0.3);
@@ -239,7 +249,7 @@ function drawCrosshair(ctx, mouse, player) {
   const screenMouseX = mouse.x;
   const screenMouseY = mouse.y;
 
-  ctx.strokeStyle = 'rgba(6, 182, 212, 0.8)';
+  ctx.strokeStyle = 'rgba(201,245,104,0.8)';
   ctx.lineWidth = 2;
   ctx.beginPath();
   const distToMouse = Math.hypot(mouse.worldX - player.x, mouse.worldY - player.y);
@@ -251,4 +261,23 @@ function drawCrosshair(ctx, mouse, player) {
   ctx.beginPath();
   ctx.arc(screenMouseX, screenMouseY, 3, 0, Math.PI * 2);
   ctx.fill();
+}
+
+function drawMinimap(ctx, canvas, state) {
+  const {player, walls, extractions = [], worldWidth = 3200, worldHeight = 2400} = state;
+  const w = Math.min(190, canvas.width * 0.18), h = w * worldHeight / worldWidth;
+  const x = canvas.width - w - 24, y = 110;
+  ctx.save(); ctx.fillStyle = 'rgba(16,22,18,0.93)'; ctx.fillRect(x-8,y-24,w+16,h+48);
+  ctx.strokeStyle = '#48513e'; ctx.strokeRect(x-8,y-24,w+16,h+48);
+  ctx.fillStyle = '#b4bcab'; ctx.font = '10px sans-serif'; ctx.fillText('区域导览  /  N ↑', x, y-9);
+  ctx.save(); ctx.beginPath(); ctx.rect(x,y,w,h); ctx.clip();
+  ctx.translate(x,y); ctx.scale(w/worldWidth,h/worldHeight);
+  ctx.fillStyle = '#444d40';
+  for (const wall of walls) ctx.fillRect(wall.x,wall.y,wall.w,wall.h);
+  for (const exit of extractions) {
+    ctx.fillStyle = exit.condition === 'paid' ? '#d9b66e' : '#c1e981';
+    ctx.fillRect(exit.x,exit.y,exit.w,exit.h);
+  }
+  ctx.fillStyle = '#f4f5ec'; ctx.beginPath(); ctx.arc(player.x,player.y,worldWidth/w*3,0,Math.PI*2); ctx.fill();
+  ctx.restore(); ctx.fillStyle = '#bbc7a5'; ctx.fillText('● 自身   绿色 免费   金色 付费',x,y+h+16); ctx.restore();
 }

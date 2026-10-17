@@ -3,91 +3,102 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2D Delta - 2D 搜打撤</title>
-  <meta name="description" content="俯视角 2D 搜打撤游戏，手绘战术角色、枪械与装备图像搭配 Unicode Emoji。">
+  <meta name="theme-color" content="#101511">
+  <title>2D Delta · 烽火地带</title>
+  <meta name="description" content="2D Delta 单人战术搜打撤。选择特工、整理装备，搜索工厂并带着战利品安全撤离。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%23c9f568' d='M8 8h18v8H16v32h10v8H8zm48 0H38v8h10v32H38v8h18z'/%3E%3Cpath fill='%23c9f568' d='m32 20 10 22H22z'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Game Canvas -->
-  <canvas id="gameCanvas"></canvas>
+  <a class="skip-link" href="#enter-lobby-btn">跳至开始行动</a>
+  <canvas id="gameCanvas" aria-label="2D Delta 作战画面"></canvas>
 
-  <!-- Login Screen -->
-  <div id="login-screen" class="login-container">
-    <div class="login-bg-pattern"></div>
-    <div class="login-card">
-      <div class="login-logo">🦅</div>
-      <h1 class="login-title">2D DELTA</h1>
-      <p class="login-subtitle">三角洲行动 · 搜打撤</p>
-      <div class="login-divider"></div>
-      <p id="login-greeting" class="login-greeting"></p>
-      <div class="login-field">
-        <span class="login-field-icon">🕵️</span>
-        <input id="username-input" class="login-input" type="text" placeholder="特工代号" maxlength="16" autocomplete="off">
-      </div>
-      <div class="login-field">
-        <span class="login-field-icon">🔑</span>
-        <input id="password-input" class="login-input" type="password" placeholder="输入密码" maxlength="32" autocomplete="off">
-        <button id="password-toggle" class="login-eye" type="button" tabindex="-1">👁</button>
-      </div>
-      <p id="password-error" class="login-error hidden"></p>
-      <button id="login-btn" class="login-btn">进 入 行 动</button>
-      <p class="login-footer">
-        <a id="clear-account" class="login-clear" href="#">清除本地档案</a>
-      </p>
+  <main id="home-screen" class="home-screen">
+    <header class="home-header">
+      <a class="brand" href="./" aria-label="2D Delta 首页"><span class="brand-mark" aria-hidden="true">◭</span><span>2D <b>DELTA</b></span></a>
+      <span class="home-edition">TACTICAL EXTRACTION / 2D</span>
+      <div class="header-actions"><button class="icon-btn" data-open-dialog="help-dialog">操作指南 <span>?</span></button><button class="icon-btn" data-open-dialog="settings-dialog">设置 <span>⚙</span></button></div>
+    </header>
+    <div class="home-grid">
+      <section class="home-copy" aria-labelledby="home-title">
+        <p class="eyebrow"><span class="status-dot"></span> 单人战术搜打撤 · 本地存档</p>
+        <h1 id="home-title">2D <span>DELTA</span></h1>
+        <p class="home-slogan">进入禁区。<br>带着战利品回来。</p>
+        <p class="home-description">选择你的特工与装备，潜入废弃工厂。<br>搜索、交火、撤离——下一步，由你决定。</p>
+        <button id="enter-lobby-btn" class="primary-btn home-enter" disabled><span>进入作战准备</span><span aria-hidden="true">↗</span></button>
+        <p id="boot-status" class="boot-status" role="status" aria-live="polite">正在装载行动配置…</p>
+        <button id="boot-reset-btn" class="text-btn danger-btn hidden" type="button">重置损坏的本地进度</button>
+        <button id="boot-retry-btn" class="text-btn hidden" type="button">重新加载配置 ↻</button>
+      </section>
+      <section class="home-stage" aria-label="行动特工展示">
+        <div class="stage-grid" aria-hidden="true"></div><div class="stage-cross cross-one" aria-hidden="true">+</div><div class="stage-cross cross-two" aria-hidden="true">+</div>
+        <div class="stage-coordinates" aria-hidden="true">SECTOR 01<br>030° / 24.8° N</div>
+        <div class="home-operator-back" id="home-operator-back" aria-hidden="true"></div><div class="home-operator" id="home-operator"></div>
+        <div class="stage-floor" aria-hidden="true"></div>
+        <div class="stage-caption"><span>特工整备中</span><b>ALL SYSTEMS READY</b><span class="signal-bars" aria-hidden="true">▂▄▆█</span></div>
+      </section>
+      <article class="home-operation">
+        <div class="operation-index"><span>01</span><span>OPERATION<br>BRIEFING</span></div>
+        <div><p class="eyebrow">当前行动区域</p><h2>废弃工厂</h2><p>工业区 · 容器搜索 · 多点撤离</p></div>
+        <div class="operation-route"><span>搜索物资</span><i aria-hidden="true"></i><span>择机交战</span><i aria-hidden="true"></i><span>安全撤离 🚁</span></div>
+        <button class="text-btn" data-open-dialog="help-dialog">第一次行动？查看指南 ↗</button>
+      </article>
     </div>
-  </div>
+    <footer class="home-footer"><span>2D DELTA / SINGLE PLAYER MVP</span><span>进度保存在此浏览器 · 无需注册</span><a href="asset-preview.html" target="_blank" rel="noopener">查看美术资产 ↗</a></footer>
+  </main>
 
-  <!-- Start Screen -->
-  <div id="start-screen" class="start-container hidden">
-    <div class="start-bg-grid"></div>
-    <div class="start-content">
-      <div class="start-emoji">🦅</div>
-      <h1 class="start-title">2D DELTA</h1>
-      <p class="start-subtitle">三角洲行动 · 搜打撤</p>
-      <div class="start-divider"></div>
-      <div class="start-info">
-        <div class="info-row"><span>🎯</span><span>搜索物资 · 消灭敌人 · 安全撤离</span></div>
-        <div class="info-row"><span>🕹️</span><span>WASD 移动 | Shift 冲刺 | 鼠标瞄准射击</span></div>
-        <div class="info-row"><span>🎒</span><span>F 拾取 | R 换弹 | Tab 背包 | 4 使用药品</span></div>
-      </div>
-      <div id="operator-cards" class="op-selector">
-        <!-- Populated by initOperatorPicker() -->
-      </div>
-      <div id="map-select-row" style="display:flex;gap:10px;align-items:center;justify-content:center;width:100%;">
-        <span style="font-size:0.8rem;color:var(--text-sub);">🗺️ 选择地图:</span>
-        <select id="map-select" style="padding:6px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:var(--text-main);font-family:var(--font-mono);font-size:0.8rem;outline:none;cursor:pointer;">
-          <option value="maps/factory_01.json">🏭 废弃工厂 Factory-01</option>
-        </select>
-        <label class="small-btn">导入地图 JSON<input id="map-import" type="file" accept=".json,application/json" hidden></label>
-      </div>
-      <div id="loadout-panel" class="stash-panel">
-        <div class="stash-header"><span>⚔️ 已装备 (带入局内)</span><span id="equip-capacity-text" class="stash-coins">容量: 12</span></div>
-        <div id="equipped-grid" class="stash-grid"></div>
-      </div>
-      <div id="stash-panel" class="stash-panel">
-        <div class="stash-header">
-          <span>🏚️ 仓库</span>
-          <span id="stash-coins" class="stash-coins">💰 0</span>
+  <main id="start-screen" class="start-container hidden" data-view="operations">
+    <header class="lobby-header">
+      <button id="back-home-btn" class="brand brand-button" aria-label="返回 2D Delta 首页"><span class="brand-mark" aria-hidden="true">◭</span><span>2D <b>DELTA</b></span></button>
+      <nav class="lobby-nav" aria-label="作战基地">
+        <button class="nav-tab active" data-lobby-view="operations" aria-current="page"><span class="nav-number">01</span>作战准备</button>
+        <button class="nav-tab" data-lobby-view="loadout"><span class="nav-number">02</span>装备仓库</button>
+        <button class="nav-tab" data-lobby-view="supply"><span class="nav-number">03</span>军需采购</button>
+      </nav>
+      <div class="header-actions"><span class="balance"><span>资金</span><b id="header-coins">50,000</b><small>₡</small></span><button class="icon-btn square-btn" data-open-dialog="help-dialog" aria-label="操作指南">?</button><button class="icon-btn square-btn" data-open-dialog="settings-dialog" aria-label="设置">⚙</button></div>
+    </header>
+
+    <div class="lobby-body">
+      <section id="view-operations" class="lobby-view operations-view" data-view-panel="operations">
+        <div class="view-heading"><div><p class="eyebrow">BLACK SITE / OPERATIONS</p><h1>作战准备</h1></div><span class="quiet-label"><span class="status-dot"></span> 单人部署 · 自动保存</span></div>
+        <div class="preparation-grid">
+          <aside class="briefing-panel">
+            <div class="section-label"><span>行动区域</span><span>01 / SELECTED</span></div>
+            <div class="map-visual" aria-hidden="true"><svg viewBox="0 0 300 170"><defs><pattern id="map-grid" width="15" height="15" patternUnits="userSpaceOnUse"><path d="M 15 0 L 0 0 0 15" fill="none" stroke="currentColor" stroke-width=".5"/></pattern></defs><rect width="300" height="170" fill="url(#map-grid)"/><g fill="currentColor" opacity=".3"><path d="M35 24h63v42H35zM116 24h39v61h-39zM185 24h72v30h-72zM186 73h35v55h-35zM237 73h22v55h-22zM36 98h52v42H36zM109 107h46v35h-46z"/></g><path d="M15 83h152v72m0-72h116M15 10v147h269V10z" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="4 4"/><path d="M22 140 100 83l68 4 103-66" fill="none" stroke="#c9f568" stroke-width="2"/><g fill="#c9f568"><circle cx="22" cy="140" r="5"/><circle cx="271" cy="21" r="5"/></g><path d="m166 77 6 12h-12z" fill="#f3f5ed"/></svg><span>战区示意 / 非导航地图</span></div>
+            <div id="map-select-row" class="map-selection"><label for="map-select">选择战区</label><select id="map-select"><option value="maps/factory_01.json">废弃工厂 Factory-01</option></select><label class="import-map small-btn" tabindex="0">导入地图 JSON <span>↗</span><input id="map-import" type="file" accept=".json,application/json" hidden></label></div>
+            <dl class="mission-facts"><div><dt>任务类型</dt><dd>搜索与撤离</dd></div><div><dt>区域网格</dt><dd id="map-size-label">50 × 38</dd></div><div><dt>撤离方式</dt><dd id="map-extract-label">3 个撤离区域</dd></div></dl>
+          </aside>
+          <section class="operator-stage" aria-label="当前特工">
+            <span class="operator-stage-code">OPERATOR / <b id="selected-operator-code">SCOUT</b></span><div class="stage-grid" aria-hidden="true"></div><div class="operator-halo" aria-hidden="true"></div><div id="selected-operator-art" class="selected-operator-art"></div><div class="operator-summary"><div><p class="eyebrow">已选择特工</p><h2 id="selected-operator-name">侦察兵</h2></div><p id="selected-operator-desc">轻装快速型 · 高机动低防护</p></div>
+          </section>
+          <aside class="ready-panel">
+            <div class="section-label"><span>行动准备</span><span>CHECKLIST</span></div>
+            <div class="readiness"><span class="status-dot"></span><span id="loadout-status">轻装待命</span></div>
+            <p class="panel-copy">带入装备会随行动承担风险。成功撤离后，带出的物资才会进入仓库。</p>
+            <div class="quick-loadout" id="quick-loadout"></div>
+            <button class="small-btn full-width" data-lobby-view="loadout">整理携带装备 <span>→</span></button>
+            <div class="mission-objectives"><h3>行动目标</h3><ol><li><span>01</span>搜索工厂内的物资与容器</li><li><span>02</span>留意脚步、枪声与剩余体力</li><li><span>03</span>抵达撤离区，存活至计时结束</li></ol></div>
+          </aside>
         </div>
-        <div id="stash-grid" class="stash-grid"></div>
-        <div class="stash-actions">
-          <label class="stash-select-all"><input type="checkbox" id="stash-select-all"> 全选</label>
-          <button id="stash-equip-selected" class="small-btn equip-btn" disabled>⚔️ 装备选中</button>
-          <button id="stash-sell-selected" class="small-btn sell-btn" disabled>💸 出售选中</button>
-          <button id="sell-all-btn" class="small-btn sell-btn">💸 全部出售</button>
+        <section class="operator-roster"><div class="roster-heading"><span>选择特工</span><span>不同特长，相同目标。</span></div><div id="operator-cards" class="op-selector"><span class="skeleton-line">正在载入特工…</span></div></section>
+      </section>
+
+      <section id="view-loadout" class="lobby-view loadout-view hidden" data-view-panel="loadout">
+        <div class="view-heading"><div><p class="eyebrow">LOADOUT / STORAGE</p><h1>装备仓库</h1></div><p>点击物品选择 · 点击携带物品卸下 · 贵重物资可出售</p></div>
+        <div class="storage-layout">
+          <section id="loadout-panel" class="stash-panel carried-panel"><div class="stash-header"><div><p class="eyebrow">CARRIED EQUIPMENT</p><h2>携带装备</h2></div><span id="equip-capacity-text" class="stash-coins">容量: 12</span></div><p class="panel-copy">最多 2 把武器、1 件护甲、1 个背包。选中的物品将在部署时带入战区。</p><div id="equipped-grid" class="stash-grid equipped-grid"></div><div class="loadout-note"><span>⚠</span><p>阵亡或中途离开会失去本次携带装备。空装部署会使用特工的基础武器。</p></div><button class="small-btn full-width" data-lobby-view="supply">前往军需采购 <span>↗</span></button></section>
+          <section id="stash-panel" class="stash-panel storage-panel"><div class="stash-header"><div><p class="eyebrow">LOCAL STORAGE</p><h2>物资仓库 <span id="stash-total" class="count-badge">0</span></h2></div><span id="stash-coins" class="stash-coins">₡ 50,000</span></div><div id="stash-grid" class="stash-grid storage-grid"></div><div class="stash-actions"><label class="stash-select-all"><input type="checkbox" id="stash-select-all"> 全选</label><span id="selection-count" class="selection-count">已选 0 件</span><button id="stash-equip-selected" class="small-btn equip-btn" disabled>装备选中</button><button id="stash-sell-selected" class="small-btn sell-btn" disabled>出售选中</button><button id="sell-all-btn" class="text-btn danger-btn" disabled>全部出售</button></div></section>
         </div>
-      </div>
-      <div id="shop-panel" class="stash-panel">
-        <div class="stash-header"><span>🏪 商店</span><span class="stash-coins">点击购买</span></div>
-        <div id="shop-grid" class="shop-grid"></div>
-      </div>
-      <p id="lobby-feedback" class="lobby-feedback" role="status" aria-live="polite"></p>
-      <button id="deploy-btn" class="deploy-btn">部 署 行 动</button>
-      <p class="start-version">单机本地档案 · 战利品入库后出售 · <a href="asset-preview.html" target="_blank" rel="noopener">查看美术资产</a></p>
+      </section>
+
+      <section id="view-supply" class="lobby-view supply-view hidden" data-view-panel="supply">
+        <div class="view-heading"><div><p class="eyebrow">SUPPLY / PROCUREMENT</p><h1>军需采购</h1></div><p>采购后存入仓库，装备后带入行动。</p></div>
+        <div class="shop-layout"><aside class="supply-sidebar"><p class="eyebrow">物资分类</p><div class="shop-filters" role="group" aria-label="筛选军需物资"><button class="filter-btn active" data-shop-filter="all" aria-pressed="true">全部物资 <span>↗</span></button><button class="filter-btn" data-shop-filter="weapon" aria-pressed="false">武器</button><button class="filter-btn" data-shop-filter="armor" aria-pressed="false">护甲与背包</button><button class="filter-btn" data-shop-filter="medicine" aria-pressed="false">医疗补给</button><button class="filter-btn" data-shop-filter="supply" aria-pressed="false">弹药与战术物资</button></div><div class="supply-note"><span>后勤提示</span><p>携带与你的武器匹配的弹药。出发前，别忘了准备医疗补给。</p><button class="text-btn" data-lobby-view="loadout">返回装备仓库 →</button></div></aside><section id="shop-panel" class="stash-panel shop-panel"><div class="stash-header"><h2 id="shop-category-title">全部物资</h2><span id="shop-item-count" class="quiet-label">正在载入物资…</span></div><div id="shop-grid" class="shop-grid"><span class="skeleton-line">正在载入军需配置…</span></div></section></div>
+      </section>
     </div>
-  </div>
-
+    <footer class="deployment-bar"><div class="deployment-brief"><span class="mode-tag">单人行动</span><div><b id="deployment-map-name">废弃工厂</b><span>搜集物资，完成撤离。</span></div></div><p id="lobby-feedback" class="lobby-feedback" role="status" aria-live="polite"></p><button id="deploy-btn" class="primary-btn deploy-btn"><span>部署行动</span><span aria-hidden="true">↗</span></button></footer>
+  </main>
   <!-- HUD Overlay -->
   <div id="hud" class="hidden">
     <!-- Top Bar -->
@@ -100,6 +111,7 @@
         </div>
       </div>
 
+      <div class="raid-telemetry"><span>剩余 <b id="raid-timer">10:00</b></span><span>击杀 <b id="raid-kills">0</b></span></div>
       <div id="top-coins" class="top-coins glass-panel">💰 50,000</div>
 
       <div id="container-loot-panel" class="container-loot-panel glass-panel hidden">
@@ -124,7 +136,7 @@
       <div id="extraction-banner" class="glass-panel hidden">
         <div class="extract-icon">🚁</div>
         <div class="extract-content">
-          <div class="extract-title">撤离进行中</div>
+          <div id="extract-title" class="extract-title">撤离进行中</div>
           <div class="extract-bar-container">
             <div id="extract-progress-bar" class="extract-bar"></div>
           </div>
@@ -139,6 +151,7 @@
       <span id="interaction-text">拾取 战利品箱</span>
     </div>
 
+    <div id="action-progress" class="hidden"><span id="action-label">行动进行中</span><div class="action-track"><div id="action-fill"></div></div></div>
     <!-- Bottom Left: Stats -->
     <div class="stats-container glass-panel">
       <div class="stat-header">
@@ -159,7 +172,7 @@
         </div>
         <div class="bar-group">
           <div class="bar-label"><span>体力</span><span id="stamina-text">100%</span></div>
-          <div class="bar-track"><div id="stamina-fill" class="bar-fill stamina-fill" style="width:100%;"></div></div>
+          <div class="bar-track"><div id="stamina-fill" class="bar-fill stamina-fill" style="width:100%;"></div></div><span id="stamina-status"></span>
         </div>
       </div>
     </div>
@@ -190,18 +203,19 @@
     </div>
 
     <!-- Inventory Drawer -->
-    <div id="inventory-drawer" class="glass-panel">
+    <div id="inventory-drawer" class="glass-panel hidden">
       <div class="inv-header">
         <span>🎒 战利品背包</span>
         <span id="loot-count">0 / 12</span>
       </div>
-      <div id="loot-grid" class="inv-grid"></div>
+      <div id="loot-grid" class="inv-grid"></div><div class="inv-header secure-header"><span>🔒 保护栏</span><span id="secure-count">0 / 2</span></div><p class="secure-note">可放贵重品、钥匙和药品；阵亡、放弃或刷新也保留。药品取出后可使用。</p><div id="secure-grid" class="inv-grid secure-grid"></div>
     </div>
 
     <!-- Notification Feed -->
     <div id="notification-feed"></div>
   </div>
 
+  <section id="pause-panel" class="hidden" aria-label="行动已暂停"><div class="pause-box"><span class="eyebrow">TACTICAL PAUSE</span><h2>行动已暂停</h2><p>调整呼吸，确认下一步。返回战区后，行动与倒计时将继续。</p><button id="resume-btn" class="primary-btn">继续行动 <span>→</span></button><button id="abandon-btn" class="text-btn danger-btn">放弃行动并返回基地</button><div class="pause-hint">Esc / 继续行动</div></div></section>
   <!-- Result Modal -->
   <div id="result-modal" class="modal-container hidden">
     <div class="modal-box glass-panel">
@@ -213,6 +227,10 @@
     </div>
   </div>
 
+
+  <dialog id="help-dialog" class="system-dialog" aria-labelledby="help-title"><div class="dialog-header"><div><p class="eyebrow">FIELD MANUAL</p><h2 id="help-title">行动指南</h2></div><button class="icon-btn square-btn" data-close-dialog aria-label="关闭操作指南">×</button></div><div class="dialog-content"><p class="dialog-intro">搜索物资，选择交战时机，前往 🚁 撤离区。保持存活，直到撤离计时完成。</p><div class="help-steps"><article><b>01 / 整备</b><p>选择特工，在军需采购物品，然后到装备仓库将物品装备到身上。</p></article><article><b>02 / 搜索</b><p>靠近容器按 F 搜索。搜索完成后选择拾取，H 可查看附近物品。</p></article><article><b>03 / 撤离</b><p>进入撤离区域等待倒计时。受击重置计时，离开区域则取消撤离。</p></article></div><dl class="controls-grid"><div><dt>W A S D</dt><dd>移动</dd></div><div><dt>Shift</dt><dd>冲刺 · 消耗体力</dd></div><div><dt>鼠标</dt><dd>瞄准 / 左键射击</dd></div><div><dt>F</dt><dd>搜索 / 拾取</dd></div><div><dt>R</dt><dd>换弹</dd></div><div><dt>1 / 2</dt><dd>切换武器</dd></div><div><dt>Tab</dt><dd>打开 / 关闭背包</dd></div><div><dt>4</dt><dd>使用医疗物品</dd></div><div><dt>G</dt><dd>投掷手雷</dd></div><div><dt>H</dt><dd>附近物品</dd></div></dl><p class="dialog-note">本地进度保存在当前浏览器。行动限时 10 分钟。阵亡、超时、放弃或刷新将失去未保护物品；仓库与 2 格保护栏保留。按 Esc 暂停；体力耗尽后需恢复至 20% 并松开 Shift，才能再次冲刺。</p></div><div class="dialog-footer"><button class="primary-btn" data-close-dialog>已了解 <span>→</span></button></div></dialog>
+  <dialog id="settings-dialog" class="system-dialog settings-dialog" aria-labelledby="settings-title"><div class="dialog-header"><div><p class="eyebrow">PREFERENCES</p><h2 id="settings-title">游戏设置</h2></div><button class="icon-btn square-btn" data-close-dialog aria-label="关闭设置">×</button></div><div class="dialog-content"><label class="setting-row"><span><b>游戏音效</b><small>枪声、命中与行动提示</small></span><input id="setting-sound" type="checkbox" data-setting="sound" checked></label><label class="setting-row"><span><b>屏幕震动</b><small>受击和开火时的镜头反馈</small></span><input id="setting-shake" type="checkbox" data-setting="screenShake" checked></label><label class="setting-row"><span><b>紧凑战术 HUD</b><small>缩小生命与武器面板，留出更多战场视野</small></span><input id="setting-hud" type="checkbox" data-setting="compactHUD"></label><label class="setting-row"><span><b>减少界面动画</b><small>减弱菜单切换与状态闪动</small></span><input id="setting-motion" type="checkbox" data-setting="reducedMotion"></label><p id="settings-feedback" class="dialog-note" role="status" aria-live="polite">设置会自动保存到此浏览器。</p></div><div class="dialog-footer"><button class="primary-btn" data-close-dialog>完成 <span>→</span></button></div></dialog>
+  <dialog id="confirm-dialog" class="system-dialog confirm-dialog" aria-labelledby="confirm-title"><div class="dialog-header"><div><p class="eyebrow">CONFIRM TRANSACTION</p><h2 id="confirm-title">出售全部仓库物资？</h2></div><button class="icon-btn square-btn" data-confirm="cancel" aria-label="取消出售">×</button></div><div class="dialog-content"><p id="confirm-description"></p><p id="confirm-note" class="dialog-note">此操作不会出售已携带的装备。出售完成后无法撤销。</p></div><div class="dialog-footer"><button class="small-btn" data-confirm="cancel">保留物资</button><button class="primary-btn" data-confirm="accept">确认出售 <span>→</span></button></div></dialog>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

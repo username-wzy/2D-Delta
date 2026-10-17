@@ -7,8 +7,12 @@
   "scripts": {
     "dev": "node tools/dev-server.cjs",
     "check": "node tools/check-project.cjs",
-    "test": "node --experimental-vm-modules docs/fixes-2026-10-02/client-regression.cjs",
-    "test:assets": "node docs/assets-2026-10-17/browser-smoke.cjs"
+    "test": "node --experimental-vm-modules --test tests/*.test.cjs",
+    "test:browser": "node tests/browser-mvp.cjs",
+    "test:assets": "npm run test:browser"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
   },
   "engines": {
     "node": ">=22"

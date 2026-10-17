@@ -16,11 +16,11 @@ export class Player {
     this.opName = op.name || '特工';
     this.opId = op.id || 'tactical';
 
-    this.maxHp = op.maxHp || 100;
+    this.maxHp = op.maxHp ?? 100;
     this.hp = this.maxHp;
-    this.maxArmor = op.maxArmor || 80;
+    this.maxArmor = op.maxArmor ?? 0;
     this.armor = this.maxArmor;
-    this.armorClass = op.armorClass || 4;
+    this.armorClass = op.armorClass ?? 0;
 
     this.maxStamina = op.maxStamina || 100;
     this.stamina = this.maxStamina;
@@ -45,6 +45,9 @@ export class Player {
       reloadTime: g.reloadTime || 1.8,
       reloadTimer: 0
     };
+    this.gun.range = g.range ?? 800;
+    this.gun.pellets = g.pellets ?? 1;
+    this.gun.pelletSpread = g.pelletSpread ?? 0;
     this.gun.ammoType = g.ammoType || '9mm';
     this.gun.fireMode = g.fireMode || 'auto';
     this.passive = op.passive || null;
@@ -59,6 +62,12 @@ export class Player {
     this.extractTimer = 0;
     this.extractDuration = 10.0;
     this.inventory = [];
+    this.secureInventory = [];
+    this.kills = 0;
+    this.raidElapsed = 0;
+    this.raidTimeRemaining = 600;
+    this.raidOutcome = '';
+    this.action = null;
     this.maxSlots = op.maxSlots || 12;
   }
 }
@@ -92,6 +101,8 @@ export class Bot {
     this.emoji = cfg.emoji || '🧟';
     this.hp = cfg.hp || 80;
     this.maxHp = this.hp;
+    this.armor = this.maxArmor = cfg.armor ?? 0;
+    this.armorClass = cfg.armorClass ?? 0;
     this.speed = cfg.speed || 140;
     this.damage = cfg.damage || 20;
     this.penetration = cfg.penetration || 15;
@@ -143,6 +154,8 @@ export function applyLootData(loot, def) {
   loot.name = def.name;
   loot.value = def.value || 0;
   loot.onPickup = def.onPickup || null;
+  loot.rarity = def.rarity ?? 1;
+  loot.useTime = def.useTime ?? 3;
   loot.ammoType = def.ammoType || null;
   loot.ammoAmount = def.ammoAmount || 0;
 }

@@ -21,7 +21,9 @@ function items(value = []) {
   if (!Array.isArray(value) || value.length > 10000) throw saveError('本地进度损坏：物品列表无效', 'CORRUPT_SAVE');
   return value.map(item => {
     if (!item || typeof item.id !== 'string' || !item.id || item.id.length > 100) throw saveError('本地进度损坏：物品无效', 'CORRUPT_SAVE');
-    return { id: item.id, emoji: typeof item.emoji === 'string' ? item.emoji.slice(0, 24) : '📦',
+    return { ...(Number.isInteger(item.rarity) ? { rarity: Math.max(1, Math.min(6, item.rarity)) } : {}),
+      ...(item.durability !== undefined ? { durability: number(item.durability), maxDurability: number(item.maxDurability, item.durability) } : {}),
+      id: item.id, emoji: typeof item.emoji === 'string' ? item.emoji.slice(0, 24) : '📦',
       name: typeof item.name === 'string' ? item.name.slice(0, 160) : item.id, value: number(item.value) };
   });
 }
@@ -34,7 +36,8 @@ function normalize(raw) {
   if (raw.lastRaidResult && typeof raw.lastRaidResult.id === 'string') next.lastRaidResult = { ...raw.lastRaidResult };
   if (raw.activeRaid) {
     if (typeof raw.activeRaid.id !== 'string' || !raw.activeRaid.id) throw saveError('本地进度损坏：行动记录无效', 'CORRUPT_SAVE');
-    next.activeRaid = { id: raw.activeRaid.id, equipped: items(raw.activeRaid.equipped) };
+    next.activeRaid = { id: raw.activeRaid.id, equipped: items(raw.activeRaid.equipped), secureInventory: items(raw.activeRaid.secureInventory) };
+    if (next.activeRaid.secureInventory.length > 2 || next.activeRaid.secureInventory.some(item => !['valuable', 'key', 'medicine'].includes(itemCategory(item)))) throw saveError('本地进度损坏：保护栏无效', 'CORRUPT_SAVE');
   }
   return next;
 }
@@ -59,6 +62,7 @@ export function loadProfile() {
   try { next = raw || legacy ? normalize(JSON.parse(raw || legacy)) : createDefault(); }
   catch (error) { if (error.code === 'CORRUPT_SAVE') throw error; throw saveError('本地进度损坏，可选择重置后开始。', 'CORRUPT_SAVE'); }
   if (next.activeRaid) {
+    next.stash.push(...next.activeRaid.secureInventory);
     next.lastRaidResult = { id: next.activeRaid.id, outcome: 'abandoned' };
     next.activeRaid = null; next.equipped = [];
     next.stats.raids++; next.stats.deaths++;
@@ -148,25 +152,34 @@ export function beginRaid(id) {
   if (typeof id !== 'string' || !id) throw new Error('行动标识无效');
   const error = getLoadoutError(); if (error) throw new Error(error);
   const equipped = profile.equipped.map(item => ({...item}));
-  persist({ ...profile, equipped: [], activeRaid: { id, equipped } });
+  persist({ ...profile, equipped: [], activeRaid: { id, equipped, secureInventory: [] } });
   return equipped;
+}
+export function updateSecureInventory(id, inventory) {
+  ensure();
+  if (profile.activeRaid?.id !== id) throw new Error('行动已结束');
+  const secured = items(inventory.map(item => ({ ...item, id: item.type || item.id })));
+  if (secured.length > 2 || secured.some(item => !['valuable', 'key', 'medicine'].includes(itemCategory(item)))) throw new Error('保护栏仅允许两件贵重品、钥匙或药品');
+  return transact(next => { next.activeRaid.secureInventory = secured; });
 }
 export function settleRaid(id, survived, gear = [], inventory = [], bonus = 0, summary = {}) {
   ensure(); if (!profile.activeRaid || profile.activeRaid.id !== id) return false;
   const cost = survived ? number(summary.extractionCost) : 0;
   if (cost > profile.coins) throw new Error('余额不足，无法支付撤离费用');
-  const carried = list => list.map(item => ({ id: item.type || item.id, emoji: item.emoji, name: item.name, value: item.value ?? 0 }));
-  const newLoot = inventory.filter(item => !item.broughtIn);
+  const carried = list => list.map(item => ({ ...item, id: item.type || item.id, value: item.value ?? 0 }));
+  const secured = summary.secureInventory || [];
+  const recovered = survived ? [...inventory, ...secured] : secured;
+  const newLoot = recovered.filter(item => !item.broughtIn);
   const value = newLoot.reduce((sum,item) => sum + (item.value || 0),0);
   const next = clone();
   next.activeRaid = null;
-  next.equipped = survived ? items([...gear, ...carried(inventory.filter(item => item.broughtIn))]) : [];
-  if (survived) next.stash.push(...items(carried(newLoot)));
+  next.equipped = survived ? items([...gear, ...carried(recovered.filter(item => item.broughtIn))]) : [];
+  next.stash.push(...items(carried(survived ? newLoot : recovered)));
   next.coins += (survived ? number(bonus) - cost : 0);
   next.stats.raids++; next.stats[survived ? 'extracts' : 'deaths']++;
   next.stats.kills += number(summary.kills);
   if (survived) next.stats.bestHaul = Math.max(next.stats.bestHaul, value);
-  next.lastRaidResult = { id, outcome: summary.outcome || (survived ? 'extracted' : 'dead'), value: survived ? value : 0,
+  next.lastRaidResult = { id, outcome: summary.outcome || (survived ? 'extracted' : 'dead'), value: recovered.reduce((sum, item) => sum + (item.value || 0), 0),
     kills: number(summary.kills), duration: number(summary.duration), extractionCost: cost };
   persist(next); return true;
 }

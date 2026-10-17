@@ -205,6 +205,7 @@ function exportJSON() {
     tiles: tilesToJSON(),
     spawns: mapData.spawns,
     lootPoints: mapData.lootPoints,
+    botCount: mapData.botCount ?? 10,
     containers: mapData.containers,
     patrolNodes: mapData.patrolNodes,
     extractions: mapData.extractions
@@ -219,6 +220,10 @@ function exportJSON() {
 function importJSON(json) {
   try {
     const data = typeof json === 'string' ? JSON.parse(json) : json;
+    if (!data || !Number.isInteger(data.width) || !Number.isInteger(data.height) || data.width < 2 || data.height < 2 || data.width > 256 || data.height > 256 || !Array.isArray(data.tiles)) throw new Error('地图尺寸或图块无效');
+    if (!Number.isInteger(data.tileSize ?? 64) || (data.tileSize ?? 64) < 32 || (data.tileSize ?? 64) > 128) throw new Error('图块大小必须为 32～128');
+    if (!Number.isInteger(data.botCount ?? 10) || (data.botCount ?? 10) < 0 || (data.botCount ?? 10) > 64) throw new Error('敌人数量无效');
+    mapData.botCount = data.botCount ?? 10;
     mapData.name = data.name || '未命名地图';
     mapData.width = data.width || 50;
     mapData.height = data.height || 38;
@@ -244,7 +249,7 @@ function importJSON(json) {
     });
     mapData.spawns = data.spawns || [];
     mapData.containers = data.containers || [];
-    mapData.extractions = data.extractions || [];
+    mapData.extractions = data.extractions || (data.extraction ? [data.extraction] : []);
     mapData.patrolNodes = data.patrolNodes || [];
     mapData.lootPoints = data.lootPoints || [];
     render();

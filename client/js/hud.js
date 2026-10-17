@@ -1,5 +1,6 @@
 // hud.js - HUD DOM element management
 import { setAssetIcon } from './assets.js';
+import { itemCategory, itemRarity, RARITY_NAMES, medicineHealing } from './itemrules.js';
 
 let elements = {};
 
@@ -33,12 +34,12 @@ export function updateHUD(player, nearestLoot, nearestContainer) {
   const pn = document.getElementById('player-name');
   const ac = document.getElementById('armor-class-text');
   if (pn) pn.innerText = player.opName || '特工';
-  if (ac) ac.innerText = `${player.armorClass}级护甲`;
+  if (ac) ac.innerText = player.armorClass > 0 ? `${player.armorClass} 级护甲` : '未装备护甲';
 
   elements.hpText.innerText = `${Math.round(player.hp)}/${player.maxHp}`;
   elements.hpFill.style.width = `${(player.hp / player.maxHp) * 100}%`;
   elements.armorText.innerText = `${Math.round(player.armor)}/${player.maxArmor}`;
-  elements.armorFill.style.width = `${(player.armor / player.maxArmor) * 100}%`;
+  elements.armorFill.style.width = `${player.maxArmor > 0 ? (player.armor / player.maxArmor) * 100 : 0}%`;
   elements.staminaText.innerText = `${Math.round(player.stamina / player.maxStamina * 100)}%`;
   elements.staminaFill.style.width = `${(player.stamina / player.maxStamina) * 100}%`;
   elements.ammoCurrent.innerText = `${player.gun.currentAmmo}`;
@@ -75,7 +76,7 @@ export function updateHUD(player, nearestLoot, nearestContainer) {
     elements.extractTimeText.innerText = `${player.extractTimer.toFixed(1)}s`;
   }
 
-  elements.lootCount.innerText = `${player.inventory.length} / ${player.maxSlots}`;
+  elements.lootCount.innerText = `${player.inventory.length + (player.loadoutGear?.length || 0)} / ${player.maxSlots}`;
 
   const coinEl = document.getElementById('top-coins');
   if (coinEl) coinEl.innerText = `💰 ${(player.coins || 0).toLocaleString()}`;
@@ -102,6 +103,17 @@ export function updateHUD(player, nearestLoot, nearestContainer) {
   const mission = document.getElementById('mission-title');
   if (mission) mission.innerText = `区域：${player.mapName || 'DELTA-01'}`;
 
+  const remaining = Math.max(0, Math.ceil(player.raidTimeRemaining ?? 600));
+  document.getElementById('raid-timer').textContent = `${Math.floor(remaining / 60).toString().padStart(2,'0')}:${(remaining % 60).toString().padStart(2,'0')}`;
+  document.getElementById('raid-kills').textContent = `${player.kills || 0}`;
+  document.getElementById('stamina-status').textContent = player.sprintExhausted ? '体力耗尽 · 恢复至 20% 后松开 Shift' : player.isSprinting ? '正在冲刺' : player.staminaRecoveryDelay > 0 ? '准备恢复' : player.stamina >= player.maxStamina ? '体力充足' : '体力恢复中';
+  const action = document.getElementById('action-progress');
+  action.classList.toggle('hidden', !player.action);
+  if (player.action) {
+    document.getElementById('action-label').textContent = `${player.action.item.name} · ${Math.max(0,player.action.remaining).toFixed(1)}s`;
+    document.getElementById('action-fill').style.width = `${(1 - player.action.remaining / player.action.duration) * 100}%`;
+  }
+
   // Grenade/Med counts
   const gCount = document.getElementById('grenade-count');
   const mCount = document.getElementById('medkit-count');
@@ -110,17 +122,36 @@ export function updateHUD(player, nearestLoot, nearestContainer) {
 }
 
 export function refreshInventoryGrid(player) {
+  const secured = player.secureInventory || [];
+  const secureGrid = document.getElementById('secure-grid');
   elements.lootGrid.innerHTML = '';
-  for (const loot of player.inventory) {
-    const slot = document.createElement('div');
-    slot.className = 'loot-slot';
-    setAssetIcon(slot, loot);
-    slot.title = loot.name;
-    slot.addEventListener('click', () => {
-      if (loot.onPickup?.startsWith('heal_')) document.dispatchEvent(new CustomEvent('use-medicine', { detail: loot.id }));
-    });
-    elements.lootGrid.appendChild(slot);
+  if (secureGrid) secureGrid.innerHTML = '';
+  const add = (loot, grid, protectedItem) => {
+    if (!grid) return;
+    const slot = document.createElement('div'); slot.className = 'loot-slot';
+    slot.dataset.rarity = itemRarity(loot);
+    const icon = document.createElement('span'); icon.className = 'loot-item-art'; setAssetIcon(icon, loot); slot.appendChild(icon);
+    const name = document.createElement('span'); name.className = 'loot-item-name'; name.textContent = loot.name; slot.appendChild(name);
+    slot.title = `${loot.name} · ${RARITY_NAMES[itemRarity(loot)-1]} · ₡${loot.value || 0}`;
+    const button = (text, event) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'loot-action'; b.textContent = text;
+      b.addEventListener('click', e => { e.stopPropagation(); document.dispatchEvent(new CustomEvent(event, {detail:loot.id})); });
+      slot.appendChild(b);
+    };
+    if (protectedItem) button('取出', 'unsecure-item');
+    else {
+      if (medicineHealing(loot)) button('使用', 'use-medicine');
+      if (['valuable', 'key', 'medicine'].includes(itemCategory(loot))) button('保护', 'secure-item');
+    }
+    grid.appendChild(slot);
+  };
+  for (const loot of player.inventory) add(loot, elements.lootGrid, false);
+  for (const loot of secured) add(loot, secureGrid, true);
+  for (let i = secured.length; i < 2; i++) {
+    if (!secureGrid) break;
+    const empty = document.createElement('span'); empty.className = 'loot-slot secure-empty'; empty.textContent = '空保护格'; secureGrid.appendChild(empty);
   }
+  if (document.getElementById('secure-count')) document.getElementById('secure-count').textContent = `${secured.length} / 2`;
 }
 
 export function pushNotification(text) {
@@ -132,7 +163,7 @@ export function pushNotification(text) {
   }
   const item = document.createElement('div');
   item.className = 'feed-item';
-  item.innerHTML = `<span>💬</span><span>${text}</span>`;
+  item.textContent = text;
   elements.notificationFeed.appendChild(item);
   setTimeout(() => {
     if (item.parentElement) item.parentElement.removeChild(item);

@@ -1,8 +1,9 @@
 // Map geometry and metadata are validated before any gear is reserved.
 import { TILE_SIZE } from './constants.js';
-import { Wall, Bot, LootContainer } from './entities.js';
+import { Wall, Bot, LootContainer, Loot, applyLootData } from './entities.js';
 import { randomBotType, randomBossType, getBotDef } from './botdata.js';
 import { allOperators } from './operatordata.js';
+import { randomLootType, getLootDef } from './lootdata.js';
 
 export async function loadMap(path) {
   const response = await fetch(path);
@@ -64,7 +65,13 @@ export function buildWorldFromMap(data, selectedSize = Math.max(48, ...allOperat
   for (const node of nodes) {
     if (!openTile(node.x, node.y) || (node.radius !== undefined && (!Number.isFinite(node.radius) || node.radius <= 0 || node.radius > 32768))) throw new Error('巡逻节点位置或半径无效');
   }
-  for (const point of list(data, 'lootPoints')) if (!openTile(point.x, point.y)) throw new Error('物资点需要位于地图空地');
+  const lootPoints = list(data, 'lootPoints');
+  for (const point of lootPoints) {
+    if (!openTile(point.x, point.y)) throw new Error('物资点需要位于地图空地');
+    if (point.type !== undefined && (typeof point.type !== 'string' || !getLootDef(point.type).id)) throw new Error('物资点类型无效');
+  }
+  const botCount = data.botCount ?? 10;
+  if (!Number.isInteger(botCount) || botCount < 0 || botCount > 64) throw new Error('敌人数量必须为 0～64 的整数');
   const containerPoints = list(data, 'containers');
   for (const point of containerPoints) {
     if (!openTile(point.x, point.y)) throw new Error('容器需要放置在地图内的空地上');
@@ -128,7 +135,7 @@ export function buildWorldFromMap(data, selectedSize = Math.max(48, ...allOperat
     bot.patrolOrigin = { x: bot.x, y: bot.y }; bot.patrolRadius = 200;
     bots.push(bot);
   }
-  for (let i = bots.length; i < 10; i++) for (let attempt = 0; attempt < 50; attempt++) {
+  for (let i = bots.length; i < botCount; i++) for (let attempt = 0; attempt < 50; attempt++) {
     const c = Math.floor(Math.random() * cols), r = Math.floor(Math.random() * rows);
     if (!openTile(c, r) || Math.hypot(c - spawn.x, r - spawn.y) < 4) continue;
     const bot = new Bot(center(c), center(r), getBotDef(randomBotType()));
@@ -140,6 +147,10 @@ export function buildWorldFromMap(data, selectedSize = Math.max(48, ...allOperat
       bot.patrolOrigin = { x: center(nodes[i].x), y: center(nodes[i].y) }; bot.patrolRadius = nodes[i].radius || 200;
     }
   });
+  for (const point of lootPoints) {
+    const type = point.type || randomLootType();
+    const loot = new Loot(center(point.x), center(point.y), type); applyLootData(loot, getLootDef(type)); loots.push(loot);
+  }
   for (const point of containerPoints) containers.push(new LootContainer(center(point.x), center(point.y), point.type, point));
   return { walls, bots, loots, containers, extractions, helipad: extractions[0], spawnX, spawnY, worldWidth, worldHeight, tileSize: ts, mapName: data.name || '自制地图' };
 }

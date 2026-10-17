@@ -23,7 +23,7 @@ function getFallback() {
   return [
     {
       id: 'tactical', name: '战术特工', emoji: '🥷', description: '均衡型',
-      size: 48, maxHp: 100, maxArmor: 80, armorClass: 4,
+      size: 48, maxHp: 100, maxArmor: 0, armorClass: 0,
       maxStamina: 100, baseSpeed: 300, sprintMultiplier: 1.6, maxSlots: 12,
       gun: { name: 'TAC-SMG', damage: 28, penetration: 35, fireRate: 0.08, magSize: 30, maxAmmo: 120, reloadTime: 1.8 }
     }

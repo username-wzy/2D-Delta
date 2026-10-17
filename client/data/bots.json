@@ -13,7 +13,9 @@
     "fireRate": 1.0,
     "visionRange": 350,
     "reactionDelay": 0.4,
-    "weight": 30
+    "weight": 30,
+    "armor": 0,
+    "armorClass": 0
   },
   {
     "id": "scav_gunner",
@@ -29,7 +31,9 @@
     "fireRate": 0.6,
     "visionRange": 400,
     "reactionDelay": 0.35,
-    "weight": 30
+    "weight": 30,
+    "armor": 40,
+    "armorClass": 2
   },
   {
     "id": "boss_ogre",
@@ -45,7 +49,9 @@
     "fireRate": 0.7,
     "visionRange": 500,
     "reactionDelay": 0.2,
-    "weight": 5
+    "weight": 5,
+    "armor": 180,
+    "armorClass": 5
   },
   {
     "id": "scav_sniper",
@@ -61,7 +67,9 @@
     "fireRate": 1.5,
     "visionRange": 550,
     "reactionDelay": 0.5,
-    "weight": 15
+    "weight": 15,
+    "armor": 30,
+    "armorClass": 2
   },
   {
     "id": "runner",
@@ -77,7 +85,9 @@
     "fireRate": 0.5,
     "visionRange": 300,
     "reactionDelay": 0.15,
-    "weight": 20
+    "weight": 20,
+    "armor": 0,
+    "armorClass": 0
   },
   {
     "id": "boss_commander",
@@ -93,7 +103,9 @@
     "fireRate": 0.8,
     "visionRange": 550,
     "reactionDelay": 0.25,
-    "weight": 3
+    "weight": 3,
+    "armor": 160,
+    "armorClass": 5
   },
   {
     "id": "heavy_gunner",
@@ -109,6 +121,8 @@
     "fireRate": 0.5,
     "visionRange": 420,
     "reactionDelay": 0.3,
-    "weight": 12
+    "weight": 12,
+    "armor": 120,
+    "armorClass": 4
   }
 ]

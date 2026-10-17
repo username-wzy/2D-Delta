@@ -5,7 +5,8 @@
     "name": "大捆现金 ($5,000)",
     "value": 5000,
     "weight": 20,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 2
   },
   {
     "id": "gem",
@@ -13,7 +14,8 @@
     "name": "高价值蓝钻 ($35,000)",
     "value": 35000,
     "weight": 5,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 6
   },
   {
     "id": "box",
@@ -21,7 +23,8 @@
     "name": "军用物资箱",
     "value": 8000,
     "weight": 10,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 3
   },
   {
     "id": "backpack",
@@ -29,7 +32,8 @@
     "name": "遗落的特工背包",
     "value": 3000,
     "weight": 8,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 2
   },
   {
     "id": "weapon_ak47",
@@ -37,7 +41,8 @@
     "name": "突击步枪 (AK-47)",
     "value": 12000,
     "weight": 5,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 3
   },
   {
     "id": "weapon_mp5",
@@ -45,7 +50,8 @@
     "name": "冲锋枪 (MP5-SD)",
     "value": 9000,
     "weight": 6,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 3
   },
   {
     "id": "weapon_shotgun",
@@ -53,7 +59,8 @@
     "name": "霰弹枪 (M870)",
     "value": 7000,
     "weight": 6,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 3
   },
   {
     "id": "armor_light",
@@ -61,7 +68,8 @@
     "name": "轻型防弹衣 (Class 2)",
     "value": 4000,
     "weight": 8,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 2
   },
   {
     "id": "armor_heavy",
@@ -69,7 +77,8 @@
     "name": "重型防弹护甲 (Class 5)",
     "value": 15000,
     "weight": 4,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 4
   },
   {
     "id": "medkit",
@@ -77,7 +86,9 @@
     "name": "军用医疗包 (+50 HP)",
     "value": 2000,
     "weight": 10,
-    "onPickup": "heal_50"
+    "onPickup": "heal_50",
+    "rarity": 2,
+    "useTime": 3
   },
   {
     "id": "medkit_large",
@@ -85,7 +96,9 @@
     "name": "外科手术包 (+100 HP)",
     "value": 5000,
     "weight": 5,
-    "onPickup": "heal_100"
+    "onPickup": "heal_100",
+    "rarity": 2,
+    "useTime": 5
   },
   {
     "id": "grenade",
@@ -93,7 +106,8 @@
     "name": "破片手榴弹",
     "value": 3000,
     "weight": 5,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 2
   },
   {
     "id": "ammo_9mm",
@@ -103,7 +117,8 @@
     "weight": 12,
     "onPickup": "ammo_9mm_120",
     "ammoType": "9mm",
-    "ammoAmount": 120
+    "ammoAmount": 120,
+    "rarity": 1
   },
   {
     "id": "ammo_rifle",
@@ -113,7 +128,8 @@
     "weight": 8,
     "onPickup": "ammo_rifle_90",
     "ammoType": "rifle",
-    "ammoAmount": 90
+    "ammoAmount": 90,
+    "rarity": 2
   },
   {
     "id": "ammo_shell",
@@ -123,7 +139,8 @@
     "weight": 8,
     "onPickup": "ammo_shell_24",
     "ammoType": "shell",
-    "ammoAmount": 24
+    "ammoAmount": 24,
+    "rarity": 1
   },
   {
     "id": "keycard_red",
@@ -131,7 +148,8 @@
     "name": "红色钥匙卡 (高价值房间)",
     "value": 50000,
     "weight": 1,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 6
   },
   {
     "id": "keycard_blue",
@@ -139,7 +157,8 @@
     "name": "蓝色钥匙卡 (武器库)",
     "value": 25000,
     "weight": 2,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 5
   },
   {
     "id": "gold_chain",
@@ -147,7 +166,8 @@
     "name": "金项链 ($8,000)",
     "value": 8000,
     "weight": 7,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 3
   },
   {
     "id": "flash_drive",
@@ -155,7 +175,8 @@
     "name": "加密U盘 (情报数据)",
     "value": 18000,
     "weight": 3,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 4
   },
   {
     "id": "dogtag",
@@ -163,7 +184,8 @@
     "name": "特工身份牌 ($2,000)",
     "value": 2000,
     "weight": 15,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 2
   },
   {
     "id": "weapon_m4",
@@ -171,7 +193,8 @@
     "name": "M4A1 卡宾枪",
     "value": 18000,
     "weight": 4,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 4
   },
   {
     "id": "weapon_sniper",
@@ -179,7 +202,8 @@
     "name": "SVD 狙击步枪",
     "value": 32000,
     "weight": 2,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 5
   },
   {
     "id": "injector",
@@ -187,7 +211,9 @@
     "name": "肾上腺素注射器 (+30 HP)",
     "value": 1200,
     "weight": 8,
-    "onPickup": "heal_30"
+    "onPickup": "heal_30",
+    "rarity": 1,
+    "useTime": 2
   },
   {
     "id": "gold_watch",
@@ -195,7 +221,8 @@
     "name": "高级金表 ($12,000)",
     "value": 12000,
     "weight": 6,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 3
   },
   {
     "id": "night_vision",
@@ -203,7 +230,8 @@
     "name": "夜视仪 ($15,000)",
     "value": 15000,
     "weight": 4,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 4
   },
   {
     "id": "keycard_green",
@@ -211,6 +239,7 @@
     "name": "绿色钥匙卡 (档案室)",
     "value": 35000,
     "weight": 2,
-    "onPickup": null
+    "onPickup": null,
+    "rarity": 6
   }
 ]

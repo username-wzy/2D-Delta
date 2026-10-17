@@ -1,0 +1,108 @@
+{
+  "date": "2026-10-17",
+  "methodology": "Real ES modules in isolated VM; DOM, storage, audio, renderer and scheduler are doubles. Controlled game steps are <= 0.1 seconds.",
+  "passed": 25,
+  "total": 25,
+  "results": [
+    {
+      "id": "B01: carried red/blue/green keys unlock only matching safes",
+      "passed": true
+    },
+    {
+      "id": "B02: loot stored once; no fixed bonus; valuables sell at listed value",
+      "passed": true
+    },
+    {
+      "id": "B03: lethal hit on last extraction frame produces only death",
+      "passed": true
+    },
+    {
+      "id": "B04: editing, repeated actions, blur, visibility and UI mouse clicks",
+      "passed": true
+    },
+    {
+      "id": "B05: timed medicines heal by definition and consume one instance after completion",
+      "passed": true
+    },
+    {
+      "id": "B05: picked grenade becomes usable and is consumed",
+      "passed": true
+    },
+    {
+      "id": "B06: default ammo type, configured amounts and secondary weapon supply",
+      "passed": true
+    },
+    {
+      "id": "B07: guns own reload/cooldown state, shared ammo cannot be duplicated",
+      "passed": true
+    },
+    {
+      "id": "B08: medic regeneration delay, sniper precision and engineer search speed",
+      "passed": true
+    },
+    {
+      "id": "B09: F and H cannot bypass backpack search or spawn contents twice",
+      "passed": true
+    },
+    {
+      "id": "B10: container pickup checks distance, line of sight and raid ownership",
+      "passed": true
+    },
+    {
+      "id": "B11: lobby capacity updates immediately; duplicate gear and overload are blocked",
+      "passed": true
+    },
+    {
+      "id": "B12: real raid movement uses imported map dimensions; map validation rejects invalid data",
+      "passed": true
+    },
+    {
+      "id": "map import is usable from lobby and preserves custom name",
+      "passed": true
+    },
+    {
+      "id": "failed map/weapon loading preserves reserved assets and returns to lobby",
+      "passed": true
+    },
+    {
+      "id": "profile reload forfeits unfinished raid; settlement failures can retry once",
+      "passed": true
+    },
+    {
+      "id": "HUD stamina/map/fire mode agree with gameplay; semi guns fire once per press",
+      "passed": true
+    },
+    {
+      "id": "MVP: configured loot points produce one pickable item and no implicit bots when disabled",
+      "passed": true
+    },
+    {
+      "id": "MVP: searches regenerate stamina and movement interrupts on the same frame",
+      "passed": true
+    },
+    {
+      "id": "MVP: healing cancels without consuming on movement, fire, reload, or hit",
+      "passed": true
+    },
+    {
+      "id": "MVP: two protected slots survive defeat, refresh, and retry without duplicates",
+      "passed": true
+    },
+    {
+      "id": "MVP: grenades fly, collide, explode after fuse, and can damage the thrower",
+      "passed": true
+    },
+    {
+      "id": "MVP: range, armor, and durability participate in actual gunfire",
+      "passed": true
+    },
+    {
+      "id": "MVP: pause freezes world timers and prevents deployment; resume clears held input",
+      "passed": true
+    },
+    {
+      "id": "MVP: paid exit debits exactly once, insufficient funds reject, timeout wins ties",
+      "passed": true
+    }
+  ]
+}

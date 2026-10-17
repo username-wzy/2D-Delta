@@ -10,7 +10,8 @@
     "maxAmmo": 120,
     "reloadTime": 1.8,
     "ammoType": "9mm",
-    "fireMode": "auto"
+    "fireMode": "auto",
+    "range": 800
   },
   {
     "id": "m249_saw",
@@ -23,7 +24,8 @@
     "maxAmmo": 200,
     "reloadTime": 2.5,
     "ammoType": "rifle",
-    "fireMode": "auto"
+    "fireMode": "auto",
+    "range": 1100
   },
   {
     "id": "weapon_ak47",
@@ -36,7 +38,8 @@
     "maxAmmo": 90,
     "reloadTime": 2.0,
     "ammoType": "rifle",
-    "fireMode": "auto"
+    "fireMode": "auto",
+    "range": 1100
   },
   {
     "id": "weapon_mp5",
@@ -49,20 +52,24 @@
     "maxAmmo": 150,
     "reloadTime": 1.5,
     "ammoType": "9mm",
-    "fireMode": "auto"
+    "fireMode": "auto",
+    "range": 800
   },
   {
     "id": "weapon_shotgun",
     "emoji": "🔫",
     "name": "M870 霰弹枪",
-    "damage": 45,
+    "damage": 12,
     "penetration": 20,
     "fireRate": 0.5,
     "magSize": 6,
     "maxAmmo": 24,
     "reloadTime": 2.5,
     "ammoType": "shell",
-    "fireMode": "semi"
+    "fireMode": "semi",
+    "range": 450,
+    "pellets": 6,
+    "pelletSpread": 0.14
   },
   {
     "id": "weapon_m4",
@@ -75,7 +82,8 @@
     "maxAmmo": 120,
     "reloadTime": 1.9,
     "ammoType": "rifle",
-    "fireMode": "auto"
+    "fireMode": "auto",
+    "range": 1000
   },
   {
     "id": "weapon_p90",
@@ -88,7 +96,8 @@
     "maxAmmo": 150,
     "reloadTime": 2.0,
     "ammoType": "9mm",
-    "fireMode": "auto"
+    "fireMode": "auto",
+    "range": 700
   },
   {
     "id": "weapon_sniper",
@@ -101,6 +110,7 @@
     "maxAmmo": 40,
     "reloadTime": 3.0,
     "ammoType": "rifle",
-    "fireMode": "semi"
+    "fireMode": "semi",
+    "range": 1600
   }
 ]

@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-17",
+  "browser": "155.0.8059.82",
+  "passed": 14,
+  "methodology": "Real Chrome headless, real ES modules, isolated storage, public UI/file import, Playwright clock for extraction, temporary loopback server closed after tests. No production state hooks.",
+  "results": [
+    {
+      "name": "anonymous home boots without login; initial local progress is valid",
+      "passed": true
+    },
+    {
+      "name": "navigation opens real operations, loadout and supply workspaces",
+      "passed": true
+    },
+    {
+      "name": "buying, selecting and equipping uses real persisted assets and money",
+      "passed": true
+    },
+    {
+      "name": "settings persist and both destructive confirmation choices work",
+      "passed": true
+    },
+    {
+      "name": "responsive home and operations fit laptop and tablet widths",
+      "passed": true
+    },
+    {
+      "name": "factory deploy renders all four atlases and consumes the lobby reservation",
+      "passed": true
+    },
+    {
+      "name": "Esc pause freezes countdown, opens confirmation, and abandonment returns to lobby",
+      "passed": true
+    },
+    {
+      "name": "real imported-map search, protected inventory and successful extraction complete a full loop",
+      "passed": true
+    },
+    {
+      "name": "protected loot survives a browser reload once; no stale carried gear returns",
+      "passed": true
+    },
+    {
+      "name": "all 37 assets render transparently; valuable Emoji and optional artwork fallback remain usable",
+      "passed": true
+    },
+    {
+      "name": "real sprint input updates stamina; a grenade defeat keeps only protected loot",
+      "passed": true
+    },
+    {
+      "name": "map editor round trip preserves paid exits, ground loot and an explicit zero bot count",
+      "passed": true
+    },
+    {
+      "name": "corrupt local progress shows a recoverable error without overwriting the save",
+      "passed": true
+    },
+    {
+      "name": "normal user flows emit no JavaScript or console errors",
+      "passed": true
+    }
+  ]
+}

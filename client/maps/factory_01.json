@@ -46,53 +46,301 @@
     "1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
   ],
   "spawns": [
-    { "x": 5, "y": 35, "team": "pmc" },
-    { "x": 44, "y": 35, "team": "pmc" },
-    { "x": 8, "y": 8, "team": "scav" },
-    { "x": 42, "y": 8, "team": "scav" },
-    { "x": 25, "y": 12, "team": "scav" },
-    { "x": 10, "y": 20, "team": "scav" },
-    { "x": 40, "y": 20, "team": "scav" },
-    { "x": 8, "y": 30, "team": "scav" },
-    { "x": 42, "y": 30, "team": "scav" },
-    { "x": 25, "y": 25, "team": "scav" },
-    { "x": 15, "y": 5, "team": "scav" },
-    { "x": 35, "y": 5, "team": "scav" }
+    {
+      "x": 5,
+      "y": 35,
+      "team": "pmc"
+    },
+    {
+      "x": 44,
+      "y": 35,
+      "team": "pmc"
+    },
+    {
+      "x": 8,
+      "y": 8,
+      "team": "scav"
+    },
+    {
+      "x": 42,
+      "y": 8,
+      "team": "scav"
+    },
+    {
+      "x": 25,
+      "y": 12,
+      "team": "scav"
+    },
+    {
+      "x": 10,
+      "y": 20,
+      "team": "scav"
+    },
+    {
+      "x": 40,
+      "y": 20,
+      "team": "scav"
+    },
+    {
+      "x": 8,
+      "y": 30,
+      "team": "scav"
+    },
+    {
+      "x": 42,
+      "y": 30,
+      "team": "scav"
+    },
+    {
+      "x": 25,
+      "y": 25,
+      "team": "scav"
+    },
+    {
+      "x": 15,
+      "y": 5,
+      "team": "scav"
+    },
+    {
+      "x": 35,
+      "y": 5,
+      "team": "scav"
+    }
   ],
-  "lootPoints": [],
+  "lootPoints": [
+    {
+      "x": 2,
+      "y": 36
+    },
+    {
+      "x": 4,
+      "y": 31
+    },
+    {
+      "x": 11,
+      "y": 34
+    },
+    {
+      "x": 6,
+      "y": 26
+    },
+    {
+      "x": 13,
+      "y": 29
+    },
+    {
+      "x": 8,
+      "y": 21
+    },
+    {
+      "x": 20,
+      "y": 32
+    },
+    {
+      "x": 1,
+      "y": 18
+    },
+    {
+      "x": 15,
+      "y": 24
+    },
+    {
+      "x": 27,
+      "y": 35
+    },
+    {
+      "x": 3,
+      "y": 13
+    },
+    {
+      "x": 10,
+      "y": 16
+    },
+    {
+      "x": 22,
+      "y": 27
+    },
+    {
+      "x": 5,
+      "y": 8
+    },
+    {
+      "x": 17,
+      "y": 19
+    },
+    {
+      "x": 29,
+      "y": 30
+    }
+  ],
   "patrolNodes": [
-    { "x": 10, "y": 10, "radius": 200 },
-    { "x": 25, "y": 18, "radius": 200 },
-    { "x": 40, "y": 10, "radius": 200 },
-    { "x": 10, "y": 28, "radius": 200 },
-    { "x": 40, "y": 28, "radius": 200 },
-    { "x": 25, "y": 8, "radius": 200 },
-    { "x": 25, "y": 28, "radius": 200 },
-    { "x": 8, "y": 18, "radius": 200 }
+    {
+      "x": 10,
+      "y": 10,
+      "radius": 200
+    },
+    {
+      "x": 25,
+      "y": 18,
+      "radius": 200
+    },
+    {
+      "x": 40,
+      "y": 10,
+      "radius": 200
+    },
+    {
+      "x": 10,
+      "y": 28,
+      "radius": 200
+    },
+    {
+      "x": 40,
+      "y": 28,
+      "radius": 200
+    },
+    {
+      "x": 25,
+      "y": 8,
+      "radius": 200
+    },
+    {
+      "x": 25,
+      "y": 28,
+      "radius": 200
+    },
+    {
+      "x": 8,
+      "y": 18,
+      "radius": 200
+    }
   ],
   "containers": [
-    { "x": 12, "y": 10, "type": "filing_cabinet" },
-    { "x": 14, "y": 10, "type": "filing_cabinet" },
-    { "x": 38, "y": 8, "type": "safe", "requiredKey": "keycard_blue" },
-    { "x": 8, "y": 22, "type": "wardrobe" },
-    { "x": 10, "y": 22, "type": "wardrobe" },
-    { "x": 30, "y": 20, "type": "filing_cabinet" },
-    { "x": 42, "y": 20, "type": "safe", "requiredKey": "keycard_green" },
-    { "x": 20, "y": 14, "type": "filing_cabinet" },
-    { "x": 6, "y": 10, "type": "filing_cabinet" },
-    { "x": 25, "y": 10, "type": "wardrobe" },
-    { "x": 35, "y": 14, "type": "filing_cabinet" },
-    { "x": 16, "y": 18, "type": "filing_cabinet" },
-    { "x": 22, "y": 24, "type": "wardrobe" },
-    { "x": 40, "y": 26, "type": "filing_cabinet" },
-    { "x": 48, "y": 14, "type": "safe", "requiredKey": "keycard_red" },
-    { "x": 4, "y": 29, "type": "wardrobe" },
-    { "x": 18, "y": 30, "type": "filing_cabinet" },
-    { "x": 35, "y": 32, "type": "filing_cabinet" }
+    {
+      "x": 12,
+      "y": 10,
+      "type": "filing_cabinet"
+    },
+    {
+      "x": 14,
+      "y": 10,
+      "type": "filing_cabinet"
+    },
+    {
+      "x": 38,
+      "y": 8,
+      "type": "safe",
+      "requiredKey": "keycard_blue"
+    },
+    {
+      "x": 8,
+      "y": 22,
+      "type": "wardrobe"
+    },
+    {
+      "x": 10,
+      "y": 22,
+      "type": "wardrobe"
+    },
+    {
+      "x": 30,
+      "y": 20,
+      "type": "filing_cabinet"
+    },
+    {
+      "x": 42,
+      "y": 20,
+      "type": "safe",
+      "requiredKey": "keycard_green"
+    },
+    {
+      "x": 20,
+      "y": 14,
+      "type": "filing_cabinet"
+    },
+    {
+      "x": 6,
+      "y": 10,
+      "type": "filing_cabinet"
+    },
+    {
+      "x": 25,
+      "y": 10,
+      "type": "wardrobe"
+    },
+    {
+      "x": 35,
+      "y": 14,
+      "type": "filing_cabinet"
+    },
+    {
+      "x": 16,
+      "y": 18,
+      "type": "filing_cabinet"
+    },
+    {
+      "x": 22,
+      "y": 24,
+      "type": "wardrobe"
+    },
+    {
+      "x": 40,
+      "y": 26,
+      "type": "filing_cabinet"
+    },
+    {
+      "x": 48,
+      "y": 14,
+      "type": "safe",
+      "requiredKey": "keycard_red"
+    },
+    {
+      "x": 4,
+      "y": 29,
+      "type": "wardrobe"
+    },
+    {
+      "x": 18,
+      "y": 30,
+      "type": "filing_cabinet"
+    },
+    {
+      "x": 35,
+      "y": 32,
+      "type": "filing_cabinet"
+    }
   ],
   "extractions": [
-    { "x": 44, "y": 2, "w": 3, "h": 3, "name": "屋顶直升机", "emoji": "🚁" },
-    { "x": 2, "y": 2, "w": 3, "h": 3, "name": "地下通道", "emoji": "🚪" },
-    { "x": 25, "y": 35, "w": 4, "h": 3, "name": "公路撤离点", "emoji": "🚛" }
+    {
+      "x": 44,
+      "y": 2,
+      "w": 3,
+      "h": 3,
+      "name": "屋顶直升机",
+      "emoji": "🚁",
+      "condition": "standard",
+      "duration": 10
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "w": 3,
+      "h": 3,
+      "name": "地下通道",
+      "emoji": "🚪",
+      "condition": "standard",
+      "duration": 10
+    },
+    {
+      "x": 25,
+      "y": 35,
+      "w": 4,
+      "h": 3,
+      "name": "公路撤离点",
+      "emoji": "🚛",
+      "condition": "paid",
+      "duration": 10,
+      "cost": 3000
+    }
   ]
 }

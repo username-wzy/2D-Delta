@@ -5,7 +5,7 @@ export function itemId(item) { return item.type || item.id; }
 
 export function itemCategory(item) {
   const id = itemId(item) || '';
-  if (id.startsWith('weapon_')) return 'weapon';
+  if (id.startsWith('weapon_') || ['tac_smg', 'm249_saw'].includes(id)) return 'weapon';
   if (id.startsWith('armor_')) return 'armor';
   if (id === 'backpack') return 'backpack';
   if (id.startsWith('ammo_')) return 'ammo';
@@ -13,6 +13,15 @@ export function itemCategory(item) {
   if (['medkit', 'medkit_large', 'injector'].includes(id)) return 'medicine';
   if (id === 'grenade') return 'grenade';
   return 'valuable';
+}
+
+export const RARITY_NAMES = ['普通', '优良', '稀有', '史诗', '传说', '至臻'];
+export function itemRarity(item) {
+  if (Number.isInteger(item.rarity)) return Math.max(1, Math.min(6, item.rarity));
+  const defined = getLootDef(itemId(item)).rarity;
+  if (defined) return defined;
+  const value = item.value ?? item.price ?? 0;
+  return value >= 35000 ? 6 : value >= 25000 ? 5 : value >= 15000 ? 4 : value >= 7000 ? 3 : value >= 2000 ? 2 : 1;
 }
 
 export function isGear(item) { return ['weapon', 'armor', 'backpack'].includes(itemCategory(item)); }

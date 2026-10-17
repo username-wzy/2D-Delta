@@ -11,6 +11,6 @@ export const HELIPAD = {
   emoji: '🚁'
 };
 
-export const BG_COLOR_DARK  = '#111827';
-export const BG_COLOR_LIGHT = '#1a2332';
+export const BG_COLOR_DARK  = '#192019';
+export const BG_COLOR_LIGHT = '#1e271f';
 export const GRID_COLOR     = 'rgba(255, 255, 255, 0.04)';
