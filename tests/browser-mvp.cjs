@@ -7,7 +7,8 @@ const { createServer } = require('../tools/dev-server.cjs');
 const root = path.resolve(__dirname, '..');
 const output = path.join(root,'docs/mvp');
 fs.mkdirSync(path.join(output,'screenshots'),{recursive:true});
-const results=[], errors=[];
+const results=[], errors=[], screenshots=[];
+let failure=null;
 let browser,server;
 const map = (exitAtSpawn=false) => ({
   name:'验收训练区域', width:20,height:16,tileSize:64,botCount:0,
@@ -22,7 +23,12 @@ async function ready(page,url){await page.goto(url+'/client/',{waitUntil:'networ
 async function lobby(page){await page.locator('#enter-lobby-btn').click();await page.locator('#start-screen').waitFor({state:'visible'});}
 async function view(page,name){await page.locator('.nav-tab[data-lobby-view="'+name+'"]').click();}
 const saved = page => page.evaluate(()=>JSON.parse(localStorage.getItem('2d_delta_save_v1')));
-async function snapshot(page,name){await page.screenshot({path:path.join(output,'screenshots',name+'.png')});}
+async function snapshot(page,name){await page.screenshot({path:path.join(output,'screenshots',name+'.png')});screenshots.push(name+'.png');}
+async function confirm(page,choice){
+  const closed=page.evaluate(()=>new Promise(resolve=>document.getElementById('confirm-dialog').addEventListener('close',()=>resolve(),{once:true})));
+  await page.locator('[data-confirm="'+choice+'"]').first().click();
+  await closed;
+}
 async function newPage(options={}){
   const context=await browser.newContext({viewport:{width:1440,height:900},...options});
   const page=await context.newPage(); page.on('pageerror',e=>errors.push(e.message));
@@ -76,8 +82,9 @@ async function newPage(options={}){
     await view(page,'supply');await page.locator('.shop-item').filter({hasText:'军用医疗包'}).click();
     await page.waitForFunction(()=>JSON.parse(localStorage.getItem('2d_delta_save_v1')).stash.length===1);
     await view(page,'loadout');await page.locator('#sell-all-btn').click();
-    await page.locator('[data-confirm="cancel"]').first().click();assert.equal((await saved(page)).stash.length,1);
-    await page.locator('#sell-all-btn').click();await page.locator('[data-confirm="accept"]').click();
+    await confirm(page,'cancel');assert.equal((await saved(page)).stash.length,1);
+    await page.locator('#sell-all-btn').click();await confirm(page,'accept');
+    await page.waitForFunction(()=>JSON.parse(localStorage.getItem('2d_delta_save_v1')).stash.length===0);
     assert.equal((await saved(page)).stash.length,0);assert.equal((await saved(page)).equipped.length,4);
   });
   await view(page,'operations');
@@ -111,7 +118,7 @@ async function newPage(options={}){
     await page.keyboard.press('Escape');assert(await page.locator('#pause-panel').isVisible());
     const before=await page.locator('#raid-timer').innerText();await page.waitForTimeout(1200);assert.equal(await page.locator('#raid-timer').innerText(),before);
     await page.locator('#resume-btn').click();await page.keyboard.press('Escape');
-    await page.locator('#abandon-btn').click();await page.locator('[data-confirm="accept"]').click();
+    await page.locator('#abandon-btn').click();await confirm(page,'accept');
     await page.locator('#result-modal').waitFor({state:'visible'});assert.match(await page.locator('#result-title').innerText(),/放弃/);
     assert.equal((await saved(page)).stats.deaths,1);
     await page.locator('#restart-btn').click();assert(await page.locator('#start-screen').isVisible());
@@ -208,11 +215,14 @@ async function newPage(options={}){
     await failed.context.close();
   });
   await check('normal user flows emit no JavaScript or console errors',async()=>assert.deepEqual(errors,[]));
+})().catch(error=>{failure=error;console.error(error);process.exitCode=1;}).finally(async()=>{
+  let revision=null;
+  try { revision=require('node:child_process').execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(); } catch {}
   fs.writeFileSync(path.join(output,'browser-results.json'),JSON.stringify({
-    date:'2026-10-17',browser:await browser.version(),passed:results.length,
-    methodology:'Real Chrome headless, real ES modules, isolated storage, public UI/file import, Playwright clock for extraction, temporary loopback server closed after tests. No production state hooks.',
-    results
+    date:'2026-10-17',revision,browser:browser?await browser.version():null,
+    status:failure?'failed':'passed',passed:results.length,total:14,
+    methodology:'Real browser, real ES modules, isolated storage, public UI/file import, Playwright clock for timers, temporary loopback server closed after tests. No production state hooks.',
+    results,screenshots,...(failure?{error:failure.stack||String(failure)}:{})
   },null,2)+'\n');
-})().catch(error=>{console.error(error);process.exitCode=1;}).finally(async()=>{
   if(browser)await browser.close();if(server)await new Promise(r=>server.close(r));
 });

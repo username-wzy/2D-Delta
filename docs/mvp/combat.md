@@ -1,6 +1,6 @@
 # Local combat rules and throw-path checks
 
-Date: 2026-10-17. This stage adds the real shared `client/js/combat.js` module. Integration into weapon hits, Bot attacks, grenade flight/fuse, visuals and feedback remains the responsibility of the main gameplay stage.
+Date: 2026-10-17. This stage adds the real shared `client/js/combat.js` module. Weapon hits, Bot attacks and grenade flight/fuse now use these rules in the main gameplay stage; see verification.md for integrated evidence.
 
 ## Damage policy
 
@@ -41,4 +41,4 @@ Dedicated real-module regression: **25/25 passed**. No replacement damage or pat
 
 Coverage includes equality at the armor threshold, light/heavy class differences, one-point armor, broken armor on following shots, penetrating wear, lethal overkill and duplicate death, invalid damage/penetration/target fields, fractional damage over 2,000 hits, free/range-limited throws, nearest-wall order, walls beyond aim/range, trees, vertical/reverse/diagonal rays, radius effects, off-axis walls, starts inside/on walls, invalid throws, and two subpixel wall-boundary cases.
 
-These checks prove shared module behavior. Full weapon/Bot/grenade integration, fuse timing, HUD feedback and browser play require their separate gameplay-stage verification.
+These checks prove shared module behavior. Integrated weapon/Bot/grenade behavior, fuse timing, HUD feedback and browser flows have since passed tests/game.test.cjs and tests/browser-mvp.cjs; see verification.md.

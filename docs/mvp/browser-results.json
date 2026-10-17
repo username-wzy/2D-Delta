@@ -1,8 +1,11 @@
 {
   "date": "2026-10-17",
+  "revision": "f6ad078c6abcc14d7aee109b689fdef9cfdc57d5",
   "browser": "155.0.8059.82",
+  "status": "passed",
   "passed": 14,
-  "methodology": "Real Chrome headless, real ES modules, isolated storage, public UI/file import, Playwright clock for extraction, temporary loopback server closed after tests. No production state hooks.",
+  "total": 14,
+  "methodology": "Real browser, real ES modules, isolated storage, public UI/file import, Playwright clock for timers, temporary loopback server closed after tests. No production state hooks.",
   "results": [
     {
       "name": "anonymous home boots without login; initial local progress is valid",
@@ -60,5 +63,20 @@
       "name": "normal user flows emit no JavaScript or console errors",
       "passed": true
     }
+  ],
+  "screenshots": [
+    "home-1440.png",
+    "home-1366.png",
+    "loadout-empty.png",
+    "supply-1440.png",
+    "loadout-equipped.png",
+    "operations-1440.png",
+    "operations-1366.png",
+    "operations-1024.png",
+    "factory-raid.png",
+    "protected-inventory.png",
+    "extracted.png",
+    "defeated.png",
+    "save-error.png"
   ]
 }

@@ -59,4 +59,4 @@ git -c core.safecrlf=false diff --check -- client/js/physics.js
 - Explicit rate consistency: running until exhaustion and walking for the remainder at 30, 60 and 144 FPS all finish a 3-second simulation at x=500 and stamina=18 for the same test operator.
 - Coverage includes all operator maxima (70/100/120), recovery timing, held/released Shift, empty inputs, contradictory directions, wall/boundary/corner blocking, sliding, diagonal speed, thin walls, imported dimensions, invalid time, parallel rays, starting on/inside a wall, exact range, wall/enemy ties, and line-of-sight.
 
-This record proves module behavior and the controlled existing client regression. Browser play and the searching/HUD integration require separate end-to-end verification after the remaining gameplay/UI changes.
+This record documents the movement stage. Searching/HUD integration and real browser sprint input have since passed the integrated MVP verification; see verification.md and browser-results.json.
