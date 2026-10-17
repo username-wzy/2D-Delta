@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emoji Delta 地图编辑器</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'JetBrains Mono', 'Consolas', monospace; background: #0a0a14; color: #f8fafc; display: flex; height: 100vh; overflow: hidden; }
+.sidebar { width: 300px; padding: 16px; background: #111827; border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+.main { flex: 1; display: flex; flex-direction: column; }
+.toolbar { padding: 10px 16px; background: #111827; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.canvas-wrap { flex: 1; overflow: auto; position: relative; background: #030712; }
+canvas { display: block; image-rendering: pixelated; }
+h2 { font-size: 1rem; color: #06b6d4; letter-spacing: 0.1em; }
+label { font-size: 0.7rem; color: #94a3b8; display: flex; flex-direction: column; gap: 4px; }
+input, textarea, select, button { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; color: #f8fafc; padding: 6px 10px; font-family: inherit; font-size: 0.75rem; outline: none; }
+input:focus, select:focus { border-color: #06b6d4; }
+button { cursor: pointer; background: rgba(6,182,212,0.15); border-color: rgba(6,182,212,0.3); font-weight: 700; letter-spacing: 0.05em; transition: all 0.15s; }
+button:hover { background: rgba(6,182,212,0.25); }
+button.danger { background: rgba(244,63,94,0.15); border-color: rgba(244,63,94,0.3); }
+button.danger:hover { background: rgba(244,63,94,0.25); }
+button.green { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.3); }
+.btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.tool-btn { padding: 6px 14px; font-size: 0.75rem; }
+.tool-btn.active { background: rgba(6,182,212,0.35); border-color: #06b6d4; box-shadow: 0 0 10px rgba(6,182,212,0.3); }
+.tile-label { display: inline-block; width: 16px; height: 16px; border-radius: 3px; margin-right: 4px; vertical-align: middle; }
+.entity-list { max-height: 160px; overflow-y: auto; font-size: 0.7rem; }
+.entity-item { padding: 4px 6px; border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+.entity-item:hover { background: rgba(255,255,255,0.06); }
+.entity-item .del { color: #f43f5e; cursor: pointer; padding: 2px 6px; }
+.stats { font-size: 0.7rem; color: #94a3b8; }
+.stats span { color: #f59e0b; }
+</style>
+</head>
+<body>
+<div class="sidebar">
+  <h2>🗺️ Emoji Delta 地图编辑器</h2>
+  <label>地图名称 <input id="mapName" value="新地图"></label>
+  <div class="btn-row" style="gap:4px;">
+    <label style="flex-direction:row;align-items:center;gap:4px;">宽<input id="mapW" type="number" value="50" min="10" max="100" style="width:55px;"></label>
+    <label style="flex-direction:row;align-items:center;gap:4px;">高<input id="mapH" type="number" value="38" min="10" max="80" style="width:55px;"></label>
+    <label style="flex-direction:row;align-items:center;gap:4px;">Tile<input id="tileSize" type="number" value="64" min="32" max="128" style="width:55px;"></label>
+    <button id="resizeBtn" class="green" style="padding:4px 8px;font-size:0.65rem;">应用</button>
+  </div>
+
+  <label>绘制工具</label>
+  <div class="btn-row">
+    <button id="toolEmpty" class="tool-btn active">⬜ 空地 (0)</button>
+    <button id="toolWall" class="tool-btn">🧱 墙壁 (1)</button>
+    <button id="toolTree" class="tool-btn">🌲 树木 (2)</button>
+    <button id="toolErase" class="tool-btn danger">🗑️ 擦除</button>
+  </div>
+
+  <label>实体放置模式</label>
+  <div class="btn-row">
+    <button id="modeSpawn" class="tool-btn">🟢 出生点</button>
+    <button id="modeContainer" class="tool-btn">📦 容器</button>
+    <button id="modeExtract" class="tool-btn">🚁 撤离点</button>
+    <button id="modePatrol" class="tool-btn">🔵 巡逻点</button>
+  </div>
+
+  <div id="entityExtra" style="display:none;">
+    <label>队伍 <select id="spawnTeam"><option value="pmc">PMC</option><option value="scav">Scav</option></select></label>
+    <label id="containerTypeLabel" style="display:none;">容器类型 <select id="containerType"><option value="filing_cabinet">🗄️ 文件柜</option><option value="wardrobe">🚪 衣柜</option><option value="safe">🔐 保险柜</option></select></label>
+    <label id="requiredKeyLabel" style="display:none;">保险柜钥匙 <select id="requiredKey"><option value="keycard_red">🔴 红卡</option><option value="keycard_blue">🔵 蓝卡</option><option value="keycard_green">🟢 绿卡</option></select></label>
+    <label id="extractSizeLabel" style="display:none;">撤离点大小 (tiles) <input id="extractW" type="number" value="3" min="1" max="6" style="width:55px;"> x <input id="extractH" type="number" value="3" min="1" max="6" style="width:55px;"></label>
+  </div>
+
+  <div class="stats">
+    图块: <span id="statTiles">0</span> |
+    出生点: <span id="statSpawns">0</span> |
+    容器: <span id="statContainers">0</span> |
+    撤离点: <span id="statExtracts">0</span>
+  </div>
+
+  <button id="exportBtn" class="green">📥 导出 JSON</button>
+  <button id="importBtn">📤 导入 JSON</button>
+  <input type="file" id="importFile" accept=".json" style="display:none;">
+  <button id="clearBtn" class="danger">🗑️ 清空全部</button>
+
+  <label>导入 JSON 文本
+    <textarea id="importText" rows="4" placeholder="粘贴 JSON 到这里..." style="resize:vertical;"></textarea>
+  </label>
+  <button id="importTextBtn">从文本导入</button>
+</div>
+
+<div class="main">
+  <div class="toolbar">
+    <span style="font-size:0.7rem;color:#94a3b8;">左键放置 | 右键删除实体 | 中键拖动平移 | 滚轮缩放</span>
+  </div>
+  <div class="canvas-wrap">
+    <canvas id="grid"></canvas>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('grid');
+const ctx = canvas.getContext('2d');
+
+// Default map data
+let mapData = {
+  name: '新地图',
+  width: 50, height: 38, tileSize: 64,
+  worldWidth: 3200, worldHeight: 2432,
+  tiles: Array(38).fill(null).map(() => Array(50).fill(0)),
+  spawns: [],
+  containers: [],
+  extractions: [],
+  patrolNodes: [],
+  lootPoints: []
+};
+
+// Drawing state
+let currentTool = 0; // 0=empty, 1=wall, 2=tree
+let placeMode = ''; // '', 'spawn', 'container', 'extract', 'patrol'
+let zoom = 1;
+let panX = 0, panY = 0;
+let dragging = false, dragStartX = 0, dragStartY = 0;
+let mouseTileX = -1, mouseTileY = -1;
+
+function rebuildTiles(w, h) {
+  const old = mapData.tiles;
+  const newTiles = [];
+  for (let y = 0; y < h; y++) {
+    const row = [];
+    for (let x = 0; x < w; x++) {
+      row.push((old[y] && old[y][x] != null) ? old[y][x] : 0);
+    }
+    newTiles.push(row);
+  }
+  return newTiles;
+}
+
+function updateWorldSize() {
+  mapData.worldWidth = mapData.width * mapData.tileSize;
+  mapData.worldHeight = mapData.height * mapData.tileSize;
+}
+
+function resizeMap() {
+  const w = parseInt(document.getElementById('mapW').value) || 50;
+  const h = parseInt(document.getElementById('mapH').value) || 38;
+  const ts = parseInt(document.getElementById('tileSize').value) || 64;
+  mapData.width = w; mapData.height = h; mapData.tileSize = ts;
+  mapData.tiles = rebuildTiles(w, h);
+  updateWorldSize();
+  render();
+}
+
+document.getElementById('resizeBtn').addEventListener('click', resizeMap);
+
+// Generate initial tiles string array
+function tilesToJSON() { return mapData.tiles.map(r => r.join(',')); }
+
+function drawTile(x, y, val) {
+  if (y >= 0 && y < mapData.height && x >= 0 && x < mapData.width) {
+    mapData.tiles[y][x] = val;
+  }
+}
+
+function addEntity(x, y) {
+  switch (placeMode) {
+    case 'spawn':
+      mapData.spawns.push({ x, y, team: document.getElementById('spawnTeam').value });
+      break;
+    case 'container':
+      mapData.containers.push({ x, y, type: document.getElementById('containerType').value, requiredKey: document.getElementById('containerType').value === 'safe' ? document.getElementById('requiredKey').value : null });
+      break;
+    case 'extract':
+      mapData.extractions.push({ x, y, w: parseInt(document.getElementById('extractW').value)||3, h: parseInt(document.getElementById('extractH').value)||3, name: '撤离点', emoji: '🚁' });
+      break;
+    case 'patrol':
+      mapData.patrolNodes.push({ x, y, radius: 200 });
+      break;
+  }
+  render();
+}
+
+function deleteEntityAt(x, y) {
+  mapData.spawns = mapData.spawns.filter(s => s.x !== x || s.y !== y);
+  mapData.containers = mapData.containers.filter(c => c.x !== x || c.y !== y);
+  mapData.extractions = mapData.extractions.filter(e => e.x !== x || e.y !== y);
+  mapData.patrolNodes = mapData.patrolNodes.filter(p => p.x !== x || p.y !== y);
+  render();
+  updateStats();
+}
+
+function clearAll() {
+  if (!confirm('确定清空全部数据？')) return;
+  mapData.tiles = Array(mapData.height).fill(null).map(() => Array(mapData.width).fill(0));
+  mapData.spawns = [];
+  mapData.containers = [];
+  mapData.extractions = [];
+  mapData.patrolNodes = [];
+  mapData.lootPoints = [];
+  render();
+  updateStats();
+}
+
+function exportJSON() {
+  const out = {
+    name: document.getElementById('mapName').value || mapData.name,
+    width: mapData.width, height: mapData.height, tileSize: mapData.tileSize,
+    worldWidth: mapData.worldWidth, worldHeight: mapData.worldHeight,
+    tiles: tilesToJSON(),
+    spawns: mapData.spawns,
+    lootPoints: mapData.lootPoints,
+    containers: mapData.containers,
+    patrolNodes: mapData.patrolNodes,
+    extractions: mapData.extractions
+  };
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = (out.name.replace(/\s+/g,'_') || 'map') + '.json';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function importJSON(json) {
+  try {
+    const data = typeof json === 'string' ? JSON.parse(json) : json;
+    mapData.name = data.name || '未命名地图';
+    mapData.width = data.width || 50;
+    mapData.height = data.height || 38;
+    mapData.tileSize = data.tileSize || 64;
+    updateWorldSize();
+    document.getElementById('mapName').value = mapData.name;
+    document.getElementById('mapW').value = mapData.width;
+    document.getElementById('mapH').value = mapData.height;
+    document.getElementById('tileSize').value = mapData.tileSize;
+    // Parse tiles
+    if (Array.isArray(data.tiles) && data.tiles.length > 0) {
+      if (typeof data.tiles[0] === 'string') {
+        mapData.tiles = data.tiles.map(r => r.split(',').map(Number));
+      } else {
+        mapData.tiles = data.tiles;
+      }
+    }
+    // Ensure correct dimensions
+    while (mapData.tiles.length < mapData.height) mapData.tiles.push(Array(mapData.width).fill(0));
+    mapData.tiles = mapData.tiles.slice(0, mapData.height).map(r => {
+      while (r.length < mapData.width) r.push(0);
+      return r.slice(0, mapData.width);
+    });
+    mapData.spawns = data.spawns || [];
+    mapData.containers = data.containers || [];
+    mapData.extractions = data.extractions || [];
+    mapData.patrolNodes = data.patrolNodes || [];
+    mapData.lootPoints = data.lootPoints || [];
+    render();
+    updateStats();
+  } catch(e) { alert('JSON 解析失败: ' + e.message); }
+}
+
+document.getElementById('exportBtn').addEventListener('click', exportJSON);
+document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => { importJSON(reader.result); e.target.value = ''; };
+  reader.readAsText(f);
+});
+document.getElementById('importTextBtn').addEventListener('click', () => {
+  const text = document.getElementById('importText').value.trim();
+  if (text) importJSON(text);
+});
+document.getElementById('clearBtn').addEventListener('click', clearAll);
+
+// Tool buttons
+document.getElementById('toolEmpty').addEventListener('click', () => { currentTool=0; updateToolUI(); });
+document.getElementById('toolWall').addEventListener('click', () => { currentTool=1; updateToolUI(); });
+document.getElementById('toolTree').addEventListener('click', () => { currentTool=2; updateToolUI(); });
+function updateToolUI() {
+  document.querySelectorAll('#toolEmpty,#toolWall,#toolTree').forEach(b => b.classList.remove('active'));
+  if (currentTool === 0) document.getElementById('toolEmpty').classList.add('active');
+  if (currentTool === 1) document.getElementById('toolWall').classList.add('active');
+  if (currentTool === 2) document.getElementById('toolTree').classList.add('active');
+  placeMode = '';
+  updateModeUI();
+}
+
+// Mode buttons
+function setMode(mode) {
+  placeMode = (placeMode === mode) ? '' : mode;
+  updateModeUI();
+  document.getElementById('entityExtra').style.display = placeMode ? 'block' : 'none';
+  document.getElementById('containerTypeLabel').style.display = placeMode === 'container' ? 'block' : 'none';
+  document.getElementById('requiredKeyLabel').style.display = placeMode === 'container' ? 'block' : 'none';
+  document.getElementById('extractSizeLabel').style.display = placeMode === 'extract' ? 'block' : 'none';
+}
+document.getElementById('modeSpawn').addEventListener('click', () => setMode('spawn'));
+document.getElementById('modeContainer').addEventListener('click', () => setMode('container'));
+document.getElementById('modeExtract').addEventListener('click', () => setMode('extract'));
+document.getElementById('modePatrol').addEventListener('click', () => setMode('patrol'));
+function updateModeUI() {
+  ['modeSpawn','modeContainer','modeExtract','modePatrol'].forEach(id => {
+    const btn = document.getElementById(id);
+    const mode = id.replace('mode','').toLowerCase();
+    // map patrolNode → patrol
+    const m = mode === 'patrol' ? 'patrol' : mode;
+    btn.classList.toggle('active', placeMode === m || placeMode === (m==='patrol'?'patrol':m));
+  });
+}
+
+function updateStats() {
+  document.getElementById('statTiles').innerText = `${mapData.width}x${mapData.height}`;
+  document.getElementById('statSpawns').innerText = mapData.spawns.length;
+  document.getElementById('statContainers').innerText = mapData.containers.length;
+  document.getElementById('statExtracts').innerText = mapData.extractions.length;
+}
+
+// Render
+function render() {
+  const ts = mapData.tileSize;
+  const w = mapData.width * ts;
+  const h = mapData.height * ts;
+  canvas.width = w;
+  canvas.height = h;
+  canvas.style.width = (w * zoom) + 'px';
+  canvas.style.height = (h * zoom) + 'px';
+
+  ctx.clearRect(0, 0, w, h);
+
+  // Grid
+  for (let y = 0; y < mapData.height; y++) {
+    for (let x = 0; x < mapData.width; x++) {
+      const val = mapData.tiles[y][x];
+      const px = x * ts, py = y * ts;
+      if (val === 0) { ctx.fillStyle = '#16162a'; }
+      else if (val === 1) { ctx.fillStyle = '#3d3d5c'; }
+      else if (val === 2) { ctx.fillStyle = '#1a3a1a'; }
+      ctx.fillRect(px, py, ts, ts);
+      // Tile emoji
+      if (val === 1) {
+        ctx.fillStyle = '#888';
+        ctx.font = `${ts*0.5}px sans-serif`;
+        ctx.fillText('🧱', px+ts*0.12, py+ts*0.65);
+      } else if (val === 2) {
+        ctx.fillStyle = '#4a4';
+        ctx.font = `${ts*0.5}px sans-serif`;
+        ctx.fillText('🌲', px+ts*0.12, py+ts*0.65);
+      }
+      // Grid line
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(px, py, ts, ts);
+    }
+  }
+
+  // Spawns
+  for (const s of mapData.spawns) {
+    const px = s.x * ts + ts/2, py = s.y * ts + ts/2;
+    ctx.fillStyle = s.team === 'pmc' ? 'rgba(6,182,212,0.35)' : 'rgba(244,63,94,0.3)';
+    ctx.beginPath(); ctx.arc(px, py, ts*0.35, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = `${ts*0.35}px sans-serif`;
+    ctx.fillText(s.team==='pmc'?'🕵️':'🧟', px-ts*0.18, py+ts*0.12);
+    // label
+    ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = `${ts*0.22}px monospace`;
+    ctx.fillText(`${s.x},${s.y}`, px-ts*0.25, py-ts*0.45);
+  }
+
+  // Containers
+  for (const c of mapData.containers) {
+    const px = c.x * ts + ts/2, py = c.y * ts + ts/2;
+    ctx.fillStyle = 'rgba(245,158,11,0.35)';
+    ctx.fillRect(px-ts*0.35, py-ts*0.35, ts*0.7, ts*0.7);
+    ctx.strokeStyle = 'rgba(245,158,11,0.6)'; ctx.lineWidth = 2;
+    ctx.strokeRect(px-ts*0.35, py-ts*0.35, ts*0.7, ts*0.7);
+    const emoji = { safe:'🔐', filing_cabinet:'🗄️', wardrobe:'🚪' }[c.type] || '📦';
+    ctx.fillStyle = '#fff'; ctx.font = `${ts*0.4}px sans-serif`;
+    ctx.fillText(emoji, px-ts*0.2, py+ts*0.15);
+  }
+
+  // Extractions
+  for (const ext of mapData.extractions) {
+    const px = ext.x * ts + ts/2, py = ext.y * ts + ts/2;
+    const ew = (ext.w||3)*ts, eh = (ext.h||3)*ts;
+    ctx.fillStyle = 'rgba(16,185,129,0.2)';
+    ctx.fillRect(px-ew/2, py-eh/2, ew, eh);
+    ctx.strokeStyle = 'rgba(16,185,129,0.5)'; ctx.lineWidth = 2; ctx.setLineDash([6,3]);
+    ctx.strokeRect(px-ew/2, py-eh/2, ew, eh); ctx.setLineDash([]);
+    ctx.fillStyle = '#fff'; ctx.font = `${ts*0.5}px sans-serif`;
+    ctx.fillText(ext.emoji||'🚁', px-ts*0.2, py+ts*0.15);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = `${ts*0.2}px monospace`;
+    ctx.fillText(ext.name||'', px-ts*0.4, py-eh/2-4);
+  }
+
+  // Patrol nodes
+  for (const p of mapData.patrolNodes) {
+    const px = p.x * ts + ts/2, py = p.y * ts + ts/2;
+    ctx.strokeStyle = 'rgba(59,130,246,0.4)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(px, py, (p.radius||200)/ts*ts*0.3, 0, Math.PI*2); ctx.stroke();
+    ctx.fillStyle = 'rgba(59,130,246,0.6)';
+    ctx.beginPath(); ctx.arc(px, py, ts*0.15, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = `${ts*0.2}px monospace`;
+    ctx.fillText(`P`, px-ts*0.12, py+ts*0.08);
+  }
+
+  // Mouse highlight
+  if (mouseTileX >= 0 && mouseTileX < mapData.width && mouseTileY >= 0 && mouseTileY < mapData.height) {
+    const px = mouseTileX * ts, py = mouseTileY * ts;
+    ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2;
+    ctx.strokeRect(px+1, py+1, ts-2, ts-2);
+  }
+}
+
+// Mouse handling
+canvas.addEventListener('mousedown', (e) => {
+  if (e.button === 1) { dragging = true; dragStartX = e.clientX; dragStartY = e.clientY; return; }
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) / zoom;
+  const my = (e.clientY - rect.top) / zoom;
+  const tx = Math.floor(mx / mapData.tileSize);
+  const ty = Math.floor(my / mapData.tileSize);
+
+  if (e.button === 0) { // left click
+    if (placeMode) { addEntity(tx, ty); updateStats(); }
+    else { drawTile(tx, ty, currentTool); render(); }
+  } else if (e.button === 2) { // right click
+    deleteEntityAt(tx, ty);
+    e.preventDefault();
+  }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  if (dragging) {
+    const wrap = document.querySelector('.canvas-wrap');
+    wrap.scrollLeft -= (e.clientX - dragStartX);
+    wrap.scrollTop -= (e.clientY - dragStartY);
+    dragStartX = e.clientX; dragStartY = e.clientY;
+    return;
+  }
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) / zoom;
+  const my = (e.clientY - rect.top) / zoom;
+  const tx = Math.floor(mx / mapData.tileSize);
+  const ty = Math.floor(my / mapData.tileSize);
+  if (tx !== mouseTileX || ty !== mouseTileY) {
+    mouseTileX = tx; mouseTileY = ty;
+    // Draw continuously if mouse is down
+    if (e.buttons & 1 && !placeMode) { drawTile(tx, ty, currentTool); }
+    render();
+  }
+});
+
+canvas.addEventListener('mouseup', () => { dragging = false; });
+canvas.addEventListener('mouseleave', () => { dragging = false; mouseTileX=-1; mouseTileY=-1; render(); });
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? -0.1 : 0.1;
+  zoom = Math.max(0.2, Math.min(3, zoom + delta));
+  render();
+});
+
+// Init
+document.getElementById('mapName').value = mapData.name;
+document.getElementById('mapW').value = mapData.width;
+document.getElementById('mapH').value = mapData.height;
+document.getElementById('tileSize').value = mapData.tileSize;
+updateWorldSize();
+updateStats();
+render();
+</script>
+</body>
+</html>

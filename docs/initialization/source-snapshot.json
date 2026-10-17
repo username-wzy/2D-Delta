@@ -1,0 +1,360 @@
+{
+  "date": "2026-10-17",
+  "source_repository": "https://github.com/username-wzy/Emoji-Delta",
+  "source_head": "4013ae2d26265fc04c73b0a55cdd079f63417c8a",
+  "includes_uncommitted_work": true,
+  "files": [
+    {
+      "path": ".gitignore",
+      "sha256": "270393868ec02d524ac6870d327f77756c584558085689f0f7634bae8744cd90"
+    },
+    {
+      "path": "AGENT.md",
+      "sha256": "8cdbed80a64a4f511d93c270813dc8cbb610f169dbe82804daba7c4a6de0c0f9"
+    },
+    {
+      "path": "README.md",
+      "sha256": "d87d1247cc01bcf5770f5597dc485ee8cdbfda245c42b09830b15221350714e2"
+    },
+    {
+      "path": "client/asset-preview.html",
+      "sha256": "2107983547b6a77d52cfb01b3d11295a0fc80601f4382a5854836616c6da13ff"
+    },
+    {
+      "path": "client/assets/README.md",
+      "sha256": "7d3ff09f1754b4a6a21c56a46b8687425ed92571e93930f769036516a572aba0"
+    },
+    {
+      "path": "client/assets/enemies.png",
+      "sha256": "337cd398ed55920aae89ed0c1f1b8d01c25a99e3b7b2547882566baf9c88c80c"
+    },
+    {
+      "path": "client/assets/equipment.png",
+      "sha256": "44399a8da242648cc2df423748cf487debd816e5052c32c0427904c1191f3748"
+    },
+    {
+      "path": "client/assets/operators.png",
+      "sha256": "0ff0ba829035128d58a94989abccb8b564f9648bb0f59614e863e74b8830dcb4"
+    },
+    {
+      "path": "client/assets/prompts.json",
+      "sha256": "55e1b239ba4ee4ae1e8285bd5b63376a46cd1b4f1c7c8023608c7915ea0a655a"
+    },
+    {
+      "path": "client/assets/weapons.png",
+      "sha256": "6713330faad0008d68edcc26d92e5dca72a1fc4a50a0fa8ab32e056c85e70167"
+    },
+    {
+      "path": "client/data/bots.json",
+      "sha256": "6f0df96983db47f9957db5d668ff6984d45dee7b396373907a1aca82f16e00ca"
+    },
+    {
+      "path": "client/data/loot.json",
+      "sha256": "2fba2604bb85791230196f620d5316c070319a7beefa64903e79428ae45ae07e"
+    },
+    {
+      "path": "client/data/operators.json",
+      "sha256": "5523d561397f76d1bd8d243bd0fc1145aa1c434f290f7340628bdccd5c91b2e3"
+    },
+    {
+      "path": "client/data/shop.json",
+      "sha256": "e783479b24c78daa4a287ead9bc21cff0269b802f234feed0d5db7efc0faa810"
+    },
+    {
+      "path": "client/data/weapons.json",
+      "sha256": "fc1590d35e82ef541e358758c69fc48fb093ac984cca5bd119696352fc714162"
+    },
+    {
+      "path": "client/fonts/QGYvz_MVcBeNP4NJtEtq.woff2",
+      "sha256": "6c18d579fd87c3776be068b762cbc83fde3acb543d49eabd3ade842eb987e887"
+    },
+    {
+      "path": "client/fonts/QGYvz_MVcBeNP4NJuktqQ4E.woff2",
+      "sha256": "0f53d1c03b3918d744a843b5039001ee31695ca1e255e3914188df81beb461e9"
+    },
+    {
+      "path": "client/fonts/UcCo3FwrK3iLTcvhYwYL8g.woff2",
+      "sha256": "93c5ac80e25cda1cf289206c724027eeb187c9d398106f0079a912cbe80616ce"
+    },
+    {
+      "path": "client/fonts/UcCo3FwrK3iLTcviYwY.woff2",
+      "sha256": "2c295d99e26dcf357d4d01bcf270fd6924b600c9a13dd8c363ef114f4c6976fa"
+    },
+    {
+      "path": "client/fonts/UcCo3FwrK3iLTcvmYwYL8g.woff2",
+      "sha256": "e1dea13a93c69f52837e370541ffe132508352666e9288ab910f2c422f4b9b50"
+    },
+    {
+      "path": "client/fonts/UcCo3FwrK3iLTcvsYwYL8g.woff2",
+      "sha256": "5e6d4fe9d9f4bff8b2a2469d25ab19576bb85331e22c6ed51398e16f95d56a9c"
+    },
+    {
+      "path": "client/fonts/UcCo3FwrK3iLTcvtYwYL8g.woff2",
+      "sha256": "935ab355938e6cd9b5fa39f2c3250ee16f3b08807c65dc4162356b50dbc8c7a2"
+    },
+    {
+      "path": "client/fonts/UcCo3FwrK3iLTcvuYwYL8g.woff2",
+      "sha256": "e0f32d9ee75a83f4031e1a7bc8926f962278e282d3535be7d8dbeb3bd62914b5"
+    },
+    {
+      "path": "client/fonts/UcCo3FwrK3iLTcvvYwYL8g.woff2",
+      "sha256": "e3a8d2d7497a325b85c2e0c9d931ba1741415d23d1f828ebc5ce8c116dab44e8"
+    },
+    {
+      "path": "client/fonts/fonts.css",
+      "sha256": "9afce699c665f94d712d51e9c18673ed102ce0e01bcd76d3e64f4e0bb353505a"
+    },
+    {
+      "path": "client/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8-qxTN1OVgaY.woff2",
+      "sha256": "d6c74dfddab488c40652ff116952624a88f8fa1de196732fd58b8e042a8967d2"
+    },
+    {
+      "path": "client/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8-qxTNFOVgaY.woff2",
+      "sha256": "879df9319f1cbf633bee1dd489e376a9e1e8c458f4abddcfe381cb83b5e6b027"
+    },
+    {
+      "path": "client/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8-qxTNVOVgaY.woff2",
+      "sha256": "bb7b98e92899b511e8f3e99c924142f4421896b2cbc9406c3727c25427662cc9"
+    },
+    {
+      "path": "client/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8-qxTOVOVgaY.woff2",
+      "sha256": "5b6dee4610cdaab7c4218c1692aa9a536414010eef4e5b3cfb25f45007811bcc"
+    },
+    {
+      "path": "client/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8-qxTOlOV.woff2",
+      "sha256": "cb182feeed4d798ff6961d3c79f7026279448fca0676438aaecb21f3fc39553a"
+    },
+    {
+      "path": "client/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8-qxTPlOVgaY.woff2",
+      "sha256": "26c9ed511def1f0fd3d1b5fe6d5c0c594d9ef8dd2435d2ff240ea265a416b6e4"
+    },
+    {
+      "path": "client/index.html",
+      "sha256": "2d308f0e36e3f3c02154a74fcd941cf0f14683dab08bb090526f003110f95425"
+    },
+    {
+      "path": "client/js/ai.js",
+      "sha256": "8f0c4bd5d356dd4b19d22f9ebdb440b620b28ee1e5567dcd9ee6d7aa7a1af1b1"
+    },
+    {
+      "path": "client/js/assets.js",
+      "sha256": "fe8f26cca2e8e78b27fc33613e9a9bd5e40fb74acadaa3be17105db279cfc120"
+    },
+    {
+      "path": "client/js/botdata.js",
+      "sha256": "49402527e13df613b220c87d41f71971f0b6374a5103fe1c408f68325102318a"
+    },
+    {
+      "path": "client/js/constants.js",
+      "sha256": "6d16b3cfe88cb06c490c2588634f683750c39bd81f18b151877f32c087468b24"
+    },
+    {
+      "path": "client/js/economy.js",
+      "sha256": "69b9fb2004462012ff6a2b7e0e65dd72a81b4679175e293a0e93bda4b92e5fda"
+    },
+    {
+      "path": "client/js/entities.js",
+      "sha256": "d98f3caf4583a490c5e83d6419b9e9c6a2a54ca2163e8d7ec3acef45925eebc5"
+    },
+    {
+      "path": "client/js/hud.js",
+      "sha256": "e72ae8e95718cb968f64efc589f083bab6aba67c65c6b2d5ac7d987cf7142d0d"
+    },
+    {
+      "path": "client/js/input.js",
+      "sha256": "4c3a0e96a56525e580c54b173dc160fb52de72fe9c3d9206fb22ecea093f42b1"
+    },
+    {
+      "path": "client/js/itemrules.js",
+      "sha256": "fee388304872d2039e431ad5c0e03a88959056c1012a09bb508f7b223ea486a6"
+    },
+    {
+      "path": "client/js/lootdata.js",
+      "sha256": "791b10aa87461841115580032e173cb9bcb9c2e9c5a4b82ea90466f2c710e927"
+    },
+    {
+      "path": "client/js/main.js",
+      "sha256": "42141e993ce443e23dc7f26adc693c54af0290c486338f23e4ed305992a55551"
+    },
+    {
+      "path": "client/js/maploader.js",
+      "sha256": "318af674a2928a84d6edbadaa0a037a0026434a3f4369037bcf8ea0ebd0312fa"
+    },
+    {
+      "path": "client/js/operatordata.js",
+      "sha256": "0ef110bb9b26bc18a3b03532d2bfdbff2236a699b5db42e1bdfcb65f12cb5a1e"
+    },
+    {
+      "path": "client/js/physics.js",
+      "sha256": "5419e88272d488680d193a6daecc4c35b18f533b2f9c82e9bc3ebc15e1c637f8"
+    },
+    {
+      "path": "client/js/renderer.js",
+      "sha256": "f8ee92d85fdc434a1f277d555f1bd45767c86b9a699b1b1a87bd63818ab9984c"
+    },
+    {
+      "path": "client/js/shopdata.js",
+      "sha256": "3c80f3139a6d00df6ac5b3c32c13f890caf69bc8d7103998be868e31e754426a"
+    },
+    {
+      "path": "client/js/sound.js",
+      "sha256": "a8ea64efc549224ede4263a5ea30b89823c0fa03947207f4ade26051c6c86274"
+    },
+    {
+      "path": "client/js/ui.js",
+      "sha256": "824d2b1078f65b2e3819dee68b1de078c2c97c2a62fbf758651682a69b972242"
+    },
+    {
+      "path": "client/js/weapondata.js",
+      "sha256": "a5b697765bd4d3dc5869853951dccbdae3f803e69cb2fe81bcc666cc8f90a488"
+    },
+    {
+      "path": "client/maps/factory_01.json",
+      "sha256": "89652df9a4e95b11411536a24ebddcec26a7148e16fc77a4ac582b0ff26c488f"
+    },
+    {
+      "path": "client/style.css",
+      "sha256": "f0747e5e0a2327c65b5701cff8d7509aea9fc45283d851340bebd63ff72da62c"
+    },
+    {
+      "path": "docs/assets-2026-10-17/asset-gallery.png",
+      "sha256": "43215686347850c52c7cd86afd3b55bc53109056c45e12525991a809b30a573f"
+    },
+    {
+      "path": "docs/assets-2026-10-17/browser-results.json",
+      "sha256": "e08b1b86881ffd6dfc60681590d85fcf3a2254651464f81091832cbda50461f7"
+    },
+    {
+      "path": "docs/assets-2026-10-17/browser-smoke.cjs",
+      "sha256": "226b389a222b42969871c6e38ea0aa935abd2808d82bb20197e5204fed8f5859"
+    },
+    {
+      "path": "docs/assets-2026-10-17/operators-in-lobby.png",
+      "sha256": "804dd8482d23aa78db09b97b3c85e47d6396c73f21121675ffce4b29cd6e6d29"
+    },
+    {
+      "path": "docs/assets-2026-10-17/raid.png",
+      "sha256": "df854460c68bed3b7765a0071281bf3ed3aa457a1930bab17a2245a88c5ad286"
+    },
+    {
+      "path": "docs/assets-2026-10-17/shop-in-lobby.png",
+      "sha256": "bccd62e899d1a06ce6d416510c9ab5035529ac58c33fd248e660f1be72ec9407"
+    },
+    {
+      "path": "docs/assets-2026-10-17/接入与验证.md",
+      "sha256": "67a3fcce004dc38d20ece5031371db371283efabc8dc0ac489175b0900a01d4f"
+    },
+    {
+      "path": "docs/fixes-2026-10-02/.gitignore",
+      "sha256": "6c5082c7e6de3e350189c67a1aacf757485ecc26e0a3cf96683528565f3e5f12"
+    },
+    {
+      "path": "docs/fixes-2026-10-02/ServerRegression.cs",
+      "sha256": "939d08e510da05b70452fa3ca992fac2d830f317d752cffca65cca6a57299d9c"
+    },
+    {
+      "path": "docs/fixes-2026-10-02/browser-smoke.png",
+      "sha256": "a1ee967e60e45e5b40415e37cb10dfe522664bb34f25f26ce66c05c11373cd53"
+    },
+    {
+      "path": "docs/fixes-2026-10-02/client-regression-results.json",
+      "sha256": "73d0081c3899b3a398ee1abc610bc30c5d7a2d920e4029fd15052e6fb303423d"
+    },
+    {
+      "path": "docs/fixes-2026-10-02/client-regression.cjs",
+      "sha256": "1f037aa9011f2ca1ee99d6e724e150fda7f1517d03e6b451f9ad2c16b84d66ee"
+    },
+    {
+      "path": "docs/fixes-2026-10-02/make-smoke-map.cjs",
+      "sha256": "0ce4ddb800bed2d279ba7c494621ba7df08a1daf1fac7a3edfa479e81c20213e"
+    },
+    {
+      "path": "docs/fixes-2026-10-02/server-regression-results.json",
+      "sha256": "7d01162126fab2ccadcbcd4dbe6edcdaffe449a426b5c065c225b60b53f50600"
+    },
+    {
+      "path": "docs/fixes-2026-10-02/server-regression.csproj",
+      "sha256": "b5c663169e4fc7ad143ba8fa3847c1bd8ca70bde350b4708edf2808745649004"
+    },
+    {
+      "path": "docs/fixes-2026-10-02/smoke-map.json",
+      "sha256": "a0565cbaf0cc66567fbb1a24e07bb6992c16fef3a6391549954f362fde63dbb8"
+    },
+    {
+      "path": "docs/fixes-2026-10-02/verify.ps1",
+      "sha256": "95e2fdd47b7bf73825aebfd9008dcd4352739d15272a0a8ac1e2122f522fda8d"
+    },
+    {
+      "path": "docs/fixes-2026-10-02/修复与验证.md",
+      "sha256": "d400003d0e75f3d1c6975470093c3ff719922513427290ef1144ba474fd500f1"
+    },
+    {
+      "path": "docs/review-2026-10-01/.gitignore",
+      "sha256": "6c5082c7e6de3e350189c67a1aacf757485ecc26e0a3cf96683528565f3e5f12"
+    },
+    {
+      "path": "docs/review-2026-10-01/ServerChecks.cs",
+      "sha256": "3f5b43c94714727a7b5bd42f2a0859cafb153f52b4ee572ab64738ea6b8bf62e"
+    },
+    {
+      "path": "docs/review-2026-10-01/backpack-capacity.png",
+      "sha256": "caaff9c6f336276c155d9bfcb0a69cb35124078712c510129813feb69e4f1be5"
+    },
+    {
+      "path": "docs/review-2026-10-01/client-checks.cjs",
+      "sha256": "f9a8a5b06ff71f4a3ecaf38d104436edef127c765b65b419e89d1b021b7cb7f5"
+    },
+    {
+      "path": "docs/review-2026-10-01/client-results.json",
+      "sha256": "53eaf0dfc9999d9d3a85c8f513a5efd23f2db0cf402849825c9492fbab9c1dbe"
+    },
+    {
+      "path": "docs/review-2026-10-01/server-checks.csproj",
+      "sha256": "b5c663169e4fc7ad143ba8fa3847c1bd8ca70bde350b4708edf2808745649004"
+    },
+    {
+      "path": "docs/review-2026-10-01/server-results.json",
+      "sha256": "7736e953f5c6d6ee57ba78ac20149462a06f3472d0f49038b48846a9dbdd3c4c"
+    },
+    {
+      "path": "docs/review-2026-10-01/项目体验与Bug审查.md",
+      "sha256": "759f15a89f087ad5ea3193788cc59b876c57677f0589481cb674e9573ad0ad87"
+    },
+    {
+      "path": "docs/多人游戏需求文档.md",
+      "sha256": "96faac35f87401e1f71784efea57c441b011b9a65b0dd67e774c52b9e8f97e59"
+    },
+    {
+      "path": "server/EmojiDelta.Server.csproj",
+      "sha256": "4b28174421f9bc1dfeecbaed245d4ea145734568c8fb76a77cae7af0203dfd2e"
+    },
+    {
+      "path": "server/GameServer.cs",
+      "sha256": "6e1eea2eec04f430eab1ea395fdf44d253b1a7b3e3d3dd878b17343a1ae8321d"
+    },
+    {
+      "path": "server/GameWorld.cs",
+      "sha256": "aaf1a49cd7acab0a4b65ba70a6407b83c82cc156ead1955df3ca36102d0006f5"
+    },
+    {
+      "path": "server/Messages.cs",
+      "sha256": "b45d4664fb686ef50db10d2e42559f39c927e2ee6f2130e59061d4d75432658a"
+    },
+    {
+      "path": "server/PlayerSession.cs",
+      "sha256": "9884d29b9b69a1d21122c4420f2fbf0871991ae171524dfc6773662f9910f6b3"
+    },
+    {
+      "path": "server/Program.cs",
+      "sha256": "66ab7feb0da7ac8b1b5aee95b13f28273d6cc387e5bdf5f025932254459227d6"
+    },
+    {
+      "path": "server/SpatialHash.cs",
+      "sha256": "3dec8da60f2bb3cbe06b2e2c7564b9ecf07a10a638172591ed44177474d8c781"
+    },
+    {
+      "path": "tools/map-editor.html",
+      "sha256": "b80254214dcc66a64949e19be5840b24a53c8e855cc399c67d0c1ebab8100384"
+    }
+  ]
+}

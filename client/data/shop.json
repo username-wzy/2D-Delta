@@ -1,0 +1,21 @@
+[
+  { "id": "weapon_m4", "emoji": "🔫", "name": "M4A1 卡宾枪", "price": 18000, "category": "weapon" },
+  { "id": "weapon_ak47", "emoji": "🔫", "name": "AK-47 突击步枪", "price": 12000, "category": "weapon" },
+  { "id": "weapon_p90", "emoji": "🔫", "name": "P90 冲锋枪", "price": 11000, "category": "weapon" },
+  { "id": "weapon_mp5", "emoji": "🔫", "name": "MP5-SD 冲锋枪", "price": 9000, "category": "weapon" },
+  { "id": "weapon_sniper", "emoji": "🔫", "name": "SVD 狙击步枪", "price": 25000, "category": "weapon" },
+  { "id": "weapon_shotgun", "emoji": "🔫", "name": "M870 霰弹枪", "price": 7000, "category": "weapon" },
+  { "id": "armor_light", "emoji": "🛡️", "name": "轻型防弹衣 (Class 2)", "price": 4000, "category": "armor" },
+  { "id": "armor_heavy", "emoji": "🛡️", "name": "重型防弹护甲 (Class 5)", "price": 15000, "category": "armor" },
+  { "id": "medkit", "emoji": "💊", "name": "军用医疗包", "price": 2000, "category": "consumable" },
+  { "id": "medkit_large", "emoji": "💊", "name": "外科手术包", "price": 5000, "category": "consumable" },
+  { "id": "injector", "emoji": "💉", "name": "肾上腺素注射器", "price": 1200, "category": "consumable" },
+  { "id": "grenade", "emoji": "🧨", "name": "破片手榴弹", "price": 3000, "category": "consumable" },
+  { "id": "ammo_9mm", "emoji": "📦", "name": "9mm 弹药箱 (120发)", "price": 1500, "category": "ammo" },
+  { "id": "ammo_rifle", "emoji": "📦", "name": "步枪弹药箱 (90发)", "price": 2500, "category": "ammo" },
+  { "id": "ammo_shell", "emoji": "📦", "name": "霰弹弹药 (24发)", "price": 1800, "category": "ammo" },
+  { "id": "backpack", "emoji": "🎒", "name": "战术背包 (+4格)", "price": 6000, "category": "gear" },
+  { "id": "keycard_blue", "emoji": "🔑", "name": "蓝色钥匙卡", "price": 25000, "category": "special" },
+  { "id": "keycard_green", "emoji": "🔑", "name": "绿色钥匙卡", "price": 35000, "category": "special" },
+  { "id": "keycard_red", "emoji": "🔑", "name": "红色钥匙卡", "price": 50000, "category": "special" }
+]

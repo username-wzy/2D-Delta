@@ -1,0 +1,76 @@
+{
+  "date": "2026-10-02",
+  "methodology": "Real ES modules in isolated VM; DOM, storage, audio, renderer and scheduler are doubles. Controlled game steps are <= 0.1 seconds.",
+  "passed": 17,
+  "total": 17,
+  "results": [
+    {
+      "id": "B01: carried red/blue/green keys unlock only matching safes",
+      "passed": true
+    },
+    {
+      "id": "B02: loot stored once; bonus paid once; resale pays 40%",
+      "passed": true
+    },
+    {
+      "id": "B03: lethal hit on last extraction frame produces only death",
+      "passed": true
+    },
+    {
+      "id": "B04: editing, repeated actions, blur, visibility and UI mouse clicks",
+      "passed": true
+    },
+    {
+      "id": "B05: medicines heal by definition and consume exactly one instance",
+      "passed": true
+    },
+    {
+      "id": "B05: picked grenade becomes usable and is consumed",
+      "passed": true
+    },
+    {
+      "id": "B06: default ammo type, configured amounts and secondary weapon supply",
+      "passed": true
+    },
+    {
+      "id": "B07: guns own reload/cooldown state, shared ammo cannot be duplicated",
+      "passed": true
+    },
+    {
+      "id": "B08: medic regeneration delay, sniper precision and engineer search speed",
+      "passed": true
+    },
+    {
+      "id": "B09: F and H cannot bypass backpack search or spawn contents twice",
+      "passed": true
+    },
+    {
+      "id": "B10: container pickup checks distance, line of sight and raid ownership",
+      "passed": true
+    },
+    {
+      "id": "B11: lobby capacity updates immediately; duplicate gear and overload are blocked",
+      "passed": true
+    },
+    {
+      "id": "B12: real raid movement uses imported map dimensions; map validation rejects invalid data",
+      "passed": true
+    },
+    {
+      "id": "map import is usable from lobby and preserves custom name",
+      "passed": true
+    },
+    {
+      "id": "failed map/weapon loading preserves reserved assets and returns to lobby",
+      "passed": true
+    },
+    {
+      "id": "profile reload forfeits unfinished raid; settlement failures can retry once",
+      "passed": true
+    },
+    {
+      "id": "HUD stamina/map/fire mode agree with gameplay; semi guns fire once per press",
+      "passed": true
+    }
+  ]
+}

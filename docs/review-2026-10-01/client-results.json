@@ -1,0 +1,177 @@
+{
+  "date": "2026-10-01",
+  "methodology": "Production game modules in isolated VM; DOM, UI output, audio and animation are stubbed; controlled state is injected into an in-memory main.js copy. All simulated frame steps are at most 0.1 seconds.",
+  "results": [
+    {
+      "id": "keys-equipped-not-usable",
+      "observed": {
+        "equipped": [
+          "keycard_red"
+        ],
+        "searching": false,
+        "notice": "🔒 需要 红色钥匙卡 才能打开保险柜"
+      }
+    },
+    {
+      "id": "extraction-double-value",
+      "observed": {
+        "start": 50000,
+        "afterExtraction": 90000,
+        "resold": 14000,
+        "afterResale": 104000,
+        "outcome": {
+          "type": "victory",
+          "total": 35000,
+          "bonus": 5000
+        }
+      }
+    },
+    {
+      "id": "consumable-effects",
+      "observed": {
+        "largeMedkitHeal": 50,
+        "medkitCount": 0,
+        "remaining": [
+          "injector"
+        ]
+      }
+    },
+    {
+      "id": "default-weapon-no-ammo-type",
+      "observed": {
+        "ammoType": null,
+        "reserve": 120,
+        "expectedReserve": 240
+      }
+    },
+    {
+      "id": "rifle-ammo-amount",
+      "observed": {
+        "reserve": 210,
+        "expected": 180
+      }
+    },
+    {
+      "id": "secondary-ammo-ignored",
+      "observed": {
+        "reserve": 90,
+        "expected": 180
+      }
+    },
+    {
+      "id": "reload-shared-between-weapons",
+      "observed": {
+        "inheritedTimer": 0.09999999999999937,
+        "shotgunAmmo": 6,
+        "shotgunReloadTime": 2.5
+      }
+    },
+    {
+      "id": "medic-passive",
+      "observed": {
+        "hpAfterTenSeconds": 50,
+        "configuredValue": 2
+      }
+    },
+    {
+      "id": "engineer-passive",
+      "observed": {
+        "searchDuration": 3,
+        "configuredMultiplier": 0.5
+      }
+    },
+    {
+      "id": "sniper-passive",
+      "observed": {
+        "spread": 0.02,
+        "configuredMultiplier": 0.3
+      }
+    },
+    {
+      "id": "backpack-search-bypass-F",
+      "observed": {
+        "inventory": [
+          "backpack"
+        ],
+        "worldLoot": 0,
+        "searchTimer": 1.5
+      }
+    },
+    {
+      "id": "backpack-search-bypass-H",
+      "observed": {
+        "inventory": [
+          "backpack"
+        ],
+        "searched": false
+      }
+    },
+    {
+      "id": "container-pick-no-distance-check",
+      "observed": {
+        "distance": 1000,
+        "picked": 1
+      }
+    },
+    {
+      "id": "old-container-survives-new-raid",
+      "observed": {
+        "oldContainerStillReferenced": true,
+        "newRaidInventory": [
+          "cash"
+        ]
+      }
+    },
+    {
+      "id": "death-and-victory-same-frame",
+      "observed": {
+        "hp": 0,
+        "outcomes": [
+          {
+            "type": "death"
+          },
+          {
+            "type": "victory",
+            "total": 0,
+            "bonus": 5000
+          }
+        ],
+        "coins": 55000
+      }
+    },
+    {
+      "id": "picked-grenade-unusable",
+      "observed": {
+        "inventory": [
+          "grenade"
+        ],
+        "usableGrenades": 0
+      }
+    },
+    {
+      "id": "input-field-shortcuts",
+      "observed": {
+        "prevented": true,
+        "gameNotice": [
+          "⚠️ 没有手榴弹！"
+        ]
+      }
+    },
+    {
+      "id": "blur-stuck-key",
+      "observed": {
+        "wAfterBlur": true,
+        "blurHandlerCount": 0
+      }
+    },
+    {
+      "id": "custom-map-hardcoded-world-boundary",
+      "observed": {
+        "mapWidth": 6400,
+        "spawnX": 4512,
+        "afterMoveX": 3176,
+        "extractionX": 5120
+      }
+    }
+  ]
+}

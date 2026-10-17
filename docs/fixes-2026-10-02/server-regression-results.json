@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-02",
+  "methodology": "Real server handler, fixed ticks, targeted channels and in-memory WebSocket; deterministic terrain. No HTTP listener or browser multiplayer integration.",
+  "passed": 12,
+  "total": 12,
+  "results": [
+    {
+      "id": "S01: input stages movement; invalid dt and malformed data have no effect",
+      "passed": true
+    },
+    {
+      "id": "S01: repeated/stale seq and input floods cannot accelerate movement",
+      "passed": true
+    },
+    {
+      "id": "S01: heartbeat timeout releases movement and firing",
+      "passed": true
+    },
+    {
+      "id": "S01: cooldown and reload advance only with server ticks",
+      "passed": true
+    },
+    {
+      "id": "S02: extraction takes 10 simulated seconds and settles only once",
+      "passed": true
+    },
+    {
+      "id": "S02: fatal hit on final extraction tick produces death only",
+      "passed": true
+    },
+    {
+      "id": "S02: leaving extraction cancels; damage resets timer",
+      "passed": true
+    },
+    {
+      "id": "S02: terminal events target their player and queues do not broadcast them",
+      "passed": true
+    },
+    {
+      "id": "raid phases: lobby input is ignored; duplicate deploy cannot heal; redeploy resets",
+      "passed": true
+    },
+    {
+      "id": "protocol: serialized outbound messages carry type and player id",
+      "passed": true
+    },
+    {
+      "id": "WebSocket: fragments reassemble and a single sender preserves output order",
+      "passed": true
+    },
+    {
+      "id": "WebSocket: oversized fragmented messages abort without deployment",
+      "passed": true
+    }
+  ]
+}

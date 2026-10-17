@@ -1,0 +1,216 @@
+[
+  {
+    "id": "cash",
+    "emoji": "💵",
+    "name": "大捆现金 ($5,000)",
+    "value": 5000,
+    "weight": 20,
+    "onPickup": null
+  },
+  {
+    "id": "gem",
+    "emoji": "💎",
+    "name": "高价值蓝钻 ($35,000)",
+    "value": 35000,
+    "weight": 5,
+    "onPickup": null
+  },
+  {
+    "id": "box",
+    "emoji": "📦",
+    "name": "军用物资箱",
+    "value": 8000,
+    "weight": 10,
+    "onPickup": null
+  },
+  {
+    "id": "backpack",
+    "emoji": "🎒",
+    "name": "遗落的特工背包",
+    "value": 3000,
+    "weight": 8,
+    "onPickup": null
+  },
+  {
+    "id": "weapon_ak47",
+    "emoji": "🔫",
+    "name": "突击步枪 (AK-47)",
+    "value": 12000,
+    "weight": 5,
+    "onPickup": null
+  },
+  {
+    "id": "weapon_mp5",
+    "emoji": "🔫",
+    "name": "冲锋枪 (MP5-SD)",
+    "value": 9000,
+    "weight": 6,
+    "onPickup": null
+  },
+  {
+    "id": "weapon_shotgun",
+    "emoji": "🔫",
+    "name": "霰弹枪 (M870)",
+    "value": 7000,
+    "weight": 6,
+    "onPickup": null
+  },
+  {
+    "id": "armor_light",
+    "emoji": "🛡️",
+    "name": "轻型防弹衣 (Class 2)",
+    "value": 4000,
+    "weight": 8,
+    "onPickup": null
+  },
+  {
+    "id": "armor_heavy",
+    "emoji": "🛡️",
+    "name": "重型防弹护甲 (Class 5)",
+    "value": 15000,
+    "weight": 4,
+    "onPickup": null
+  },
+  {
+    "id": "medkit",
+    "emoji": "💊",
+    "name": "军用医疗包 (+50 HP)",
+    "value": 2000,
+    "weight": 10,
+    "onPickup": "heal_50"
+  },
+  {
+    "id": "medkit_large",
+    "emoji": "💊",
+    "name": "外科手术包 (+100 HP)",
+    "value": 5000,
+    "weight": 5,
+    "onPickup": "heal_100"
+  },
+  {
+    "id": "grenade",
+    "emoji": "🧨",
+    "name": "破片手榴弹",
+    "value": 3000,
+    "weight": 5,
+    "onPickup": null
+  },
+  {
+    "id": "ammo_9mm",
+    "emoji": "📦",
+    "name": "9mm 弹药箱 (120发)",
+    "value": 1500,
+    "weight": 12,
+    "onPickup": "ammo_9mm_120",
+    "ammoType": "9mm",
+    "ammoAmount": 120
+  },
+  {
+    "id": "ammo_rifle",
+    "emoji": "📦",
+    "name": "步枪弹药箱 (90发)",
+    "value": 2500,
+    "weight": 8,
+    "onPickup": "ammo_rifle_90",
+    "ammoType": "rifle",
+    "ammoAmount": 90
+  },
+  {
+    "id": "ammo_shell",
+    "emoji": "📦",
+    "name": "霰弹弹药 (24发)",
+    "value": 1800,
+    "weight": 8,
+    "onPickup": "ammo_shell_24",
+    "ammoType": "shell",
+    "ammoAmount": 24
+  },
+  {
+    "id": "keycard_red",
+    "emoji": "🔑",
+    "name": "红色钥匙卡 (高价值房间)",
+    "value": 50000,
+    "weight": 1,
+    "onPickup": null
+  },
+  {
+    "id": "keycard_blue",
+    "emoji": "🔑",
+    "name": "蓝色钥匙卡 (武器库)",
+    "value": 25000,
+    "weight": 2,
+    "onPickup": null
+  },
+  {
+    "id": "gold_chain",
+    "emoji": "📿",
+    "name": "金项链 ($8,000)",
+    "value": 8000,
+    "weight": 7,
+    "onPickup": null
+  },
+  {
+    "id": "flash_drive",
+    "emoji": "💾",
+    "name": "加密U盘 (情报数据)",
+    "value": 18000,
+    "weight": 3,
+    "onPickup": null
+  },
+  {
+    "id": "dogtag",
+    "emoji": "🏷️",
+    "name": "特工身份牌 ($2,000)",
+    "value": 2000,
+    "weight": 15,
+    "onPickup": null
+  },
+  {
+    "id": "weapon_m4",
+    "emoji": "🔫",
+    "name": "M4A1 卡宾枪",
+    "value": 18000,
+    "weight": 4,
+    "onPickup": null
+  },
+  {
+    "id": "weapon_sniper",
+    "emoji": "🔫",
+    "name": "SVD 狙击步枪",
+    "value": 32000,
+    "weight": 2,
+    "onPickup": null
+  },
+  {
+    "id": "injector",
+    "emoji": "💉",
+    "name": "肾上腺素注射器 (+30 HP)",
+    "value": 1200,
+    "weight": 8,
+    "onPickup": "heal_30"
+  },
+  {
+    "id": "gold_watch",
+    "emoji": "⌚",
+    "name": "高级金表 ($12,000)",
+    "value": 12000,
+    "weight": 6,
+    "onPickup": null
+  },
+  {
+    "id": "night_vision",
+    "emoji": "👓",
+    "name": "夜视仪 ($15,000)",
+    "value": 15000,
+    "weight": 4,
+    "onPickup": null
+  },
+  {
+    "id": "keycard_green",
+    "emoji": "🔑",
+    "name": "绿色钥匙卡 (档案室)",
+    "value": 35000,
+    "weight": 2,
+    "onPickup": null
+  }
+]

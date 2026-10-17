@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-17",
+  "browser": "155.0.8059.82",
+  "passed": 9,
+  "methodology": "Real Chrome headless; isolated localStorage; temporary loopback HTTP server; real app modules and rendering. No production state hooks.",
+  "results": [
+    {
+      "name": "four transparent atlases load and cover all configured operators, bots, weapons and shop goods",
+      "passed": true
+    },
+    {
+      "name": "old ID-only saves display distinct images while valuables retain Emoji",
+      "passed": true
+    },
+    {
+      "name": "buying and equipping items keeps the correct image",
+      "passed": true
+    },
+    {
+      "name": "actual raid renders characters, weapons and searchable containers; weapon switches update the HUD",
+      "passed": true
+    },
+    {
+      "name": "HUD icon updates do not rebuild unchanged icon nodes each frame",
+      "passed": true
+    },
+    {
+      "name": "all 37 Canvas frames have artwork and transparency; keycards exclude neighboring cabinet pixels",
+      "passed": true
+    },
+    {
+      "name": "asset gallery shows all 37 sprites without overflow on a small screen",
+      "passed": true
+    },
+    {
+      "name": "one unavailable sheet falls back to Emoji without blocking login or deployment",
+      "passed": true
+    },
+    {
+      "name": "no JavaScript or console errors in the normal browser flow",
+      "passed": true
+    }
+  ]
+}

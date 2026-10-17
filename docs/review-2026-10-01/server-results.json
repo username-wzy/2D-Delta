@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-01",
+  "methodology": "Real GameServer.ProcessMessage invoked in process; sockets and tick loop are not started; terrain cleared for deterministic movement.",
+  "results": [
+    {
+      "id": "client-dt-trusted",
+      "observed": {
+        "x": 1900,
+        "distance": 1500,
+        "elapsedMs": 58.8999,
+        "suspiciousActivity": 0
+      }
+    },
+    {
+      "id": "input-rate-and-sequence-not-checked",
+      "observed": {
+        "sameSeqMessages": 100,
+        "distance": 500,
+        "elapsedMs": 1.7485,
+        "lastProcessedSeq": 1
+      }
+    },
+    {
+      "id": "client-dt-instant-reload",
+      "observed": {
+        "ammo": 30,
+        "isReloading": false
+      }
+    },
+    {
+      "id": "extraction-instant-and-repeated",
+      "observed": {
+        "events": [
+          "extraction_start",
+          "extraction_complete",
+          "extraction_complete"
+        ],
+        "timer": -0.01,
+        "isExtracting": true
+      }
+    }
+  ]
+}
