@@ -1,0 +1,16 @@
+{
+  "name": "2d-delta",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "2D Delta — a standalone 2D tactical extraction game.",
+  "scripts": {
+    "dev": "node tools/dev-server.cjs",
+    "check": "node tools/check-project.cjs",
+    "test": "node --experimental-vm-modules docs/fixes-2026-10-02/client-regression.cjs",
+    "test:assets": "node docs/assets-2026-10-17/browser-smoke.cjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
