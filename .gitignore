@@ -54,3 +54,8 @@ Desktop.ini
 .idea/workspace.xml
 .idea/tasks.xml
 .idea/shelf/
+
+# Local browser runner output (reviewed evidence under docs/mvp stays versioned)
+playwright-report/
+test-results/
+blob-report/

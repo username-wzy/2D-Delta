@@ -1,3 +1,5 @@
+> 历史资料：此文档记录旧版本；当前单机 MVP 的功能、启动方式与验收以根目录 README 和 docs/mvp/ 为准。
+
 # Emoji Delta 项目体验与 Bug 审查
 
 更新：2026-10-02 已修复 B01～B12、S01、S02，详见 [修复与验证](C:/Users/PC/project/Emoji-Delta/docs/fixes-2026-10-02/修复与验证.md)。下文保留修复前的审查证据。
