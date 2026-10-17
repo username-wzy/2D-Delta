@@ -1,304 +1,176 @@
-// economy.js - Money & persistent data layer (localStorage-backed)
-import { equipmentError, loadoutCapacity } from './itemrules.js';
-const STORAGE_KEY = 'emoji_delta_profile';
-
+// Anonymous, transactional single-player progression. No account or password state.
+import { equipmentError, loadoutCapacity, itemCategory } from './itemrules.js';
+export const STORAGE_KEY = '2d_delta_save_v1';
+const LEGACY_KEY = 'emoji_delta_profile';
 let profile = null;
-let maxEquipSlots = 12; // operator base capacity; backpack is calculated from current gear
+let maxEquipSlots = 12;
 
-/** Set the operator's base capacity; backpack bonus is calculated on demand. */
-export function setMaxEquipSlots(n) { maxEquipSlots = Math.max(1, n); }
+function saveError(message, code = 'SAVE_FAILED') {
+  const error = new Error(message); error.code = code; return error;
+}
+function createDefault() {
+  return { version: 1, coins: 50000, stash: [], equipped: [], activeRaid: null,
+    stats: { raids: 0, extracts: 0, deaths: 0, earnings: 0, bestHaul: 0, kills: 0 }, createdAt: Date.now() };
+}
+function number(value, fallback = 0) {
+  if (value === undefined) return fallback;
+  if (!Number.isFinite(value) || value < 0 || value > Number.MAX_SAFE_INTEGER) throw saveError('本地进度损坏：数值无效', 'CORRUPT_SAVE');
+  return Math.floor(value);
+}
+function items(value = []) {
+  if (!Array.isArray(value) || value.length > 10000) throw saveError('本地进度损坏：物品列表无效', 'CORRUPT_SAVE');
+  return value.map(item => {
+    if (!item || typeof item.id !== 'string' || !item.id || item.id.length > 100) throw saveError('本地进度损坏：物品无效', 'CORRUPT_SAVE');
+    return { id: item.id, emoji: typeof item.emoji === 'string' ? item.emoji.slice(0, 24) : '📦',
+      name: typeof item.name === 'string' ? item.name.slice(0, 160) : item.id, value: number(item.value) };
+  });
+}
+function normalize(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw saveError('本地进度损坏', 'CORRUPT_SAVE');
+  const next = createDefault();
+  next.coins = number(raw.coins, 50000); next.stash = items(raw.stash); next.equipped = items(raw.equipped);
+  next.createdAt = number(raw.createdAt, Date.now());
+  for (const key of Object.keys(next.stats)) next.stats[key] = number(raw.stats?.[key]);
+  if (raw.lastRaidResult && typeof raw.lastRaidResult.id === 'string') next.lastRaidResult = { ...raw.lastRaidResult };
+  if (raw.activeRaid) {
+    if (typeof raw.activeRaid.id !== 'string' || !raw.activeRaid.id) throw saveError('本地进度损坏：行动记录无效', 'CORRUPT_SAVE');
+    next.activeRaid = { id: raw.activeRaid.id, equipped: items(raw.activeRaid.equipped) };
+  }
+  return next;
+}
+function persist(next) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); }
+  catch { throw saveError('本地进度保存失败，操作未生效。请允许站点存储或释放空间后重试。'); }
+  profile = next;
+  return profile;
+}
+function ensure() { if (!profile) loadProfile(); return profile; }
+function clone() { return JSON.parse(JSON.stringify(ensure())); }
+function lobbyOnly() { if (ensure().activeRaid) throw new Error('行动期间不能修改仓库或携带装备'); }
+function transact(change) { const next = clone(); const result = change(next); persist(next); return result; }
+const validIndex = (index, array) => Number.isInteger(index) && index >= 0 && index < array.length;
+const uniqueIndices = (indices, array) => [...new Set(indices)].filter(i => validIndex(i, array)).sort((a,b) => b-a);
+
+export function loadProfile() {
+  let raw, legacy;
+  try { raw = localStorage.getItem(STORAGE_KEY); legacy = raw ? null : localStorage.getItem(LEGACY_KEY); }
+  catch { throw saveError('无法读取本地进度，请允许站点存储后重试。'); }
+  let next;
+  try { next = raw || legacy ? normalize(JSON.parse(raw || legacy)) : createDefault(); }
+  catch (error) { if (error.code === 'CORRUPT_SAVE') throw error; throw saveError('本地进度损坏，可选择重置后开始。', 'CORRUPT_SAVE'); }
+  if (next.activeRaid) {
+    next.lastRaidResult = { id: next.activeRaid.id, outcome: 'abandoned' };
+    next.activeRaid = null; next.equipped = [];
+    next.stats.raids++; next.stats.deaths++;
+  }
+  // Write migration/abandonment once, then discard obsolete identity data.
+  if (!raw || JSON.stringify(next) !== raw) persist(next); else profile = next;
+  if (legacy) { try { localStorage.removeItem(LEGACY_KEY); } catch { /* New anonymous save is already durable. */ } }
+  return profile;
+}
+export function saveProfile() { return persist(clone()); }
+export function getProfile() { return ensure(); }
+export function getCoins() { return ensure().coins; }
+export function getStash() { return ensure().stash; }
+export function getEquipped() { return ensure().equipped; }
+export function setMaxEquipSlots(n) { maxEquipSlots = Number.isFinite(n) ? Math.max(1, Math.floor(n)) : 12; }
 export function getMaxEquipSlots() { return loadoutCapacity(maxEquipSlots, getEquipped()); }
 export function getEquipError(item) {
   const equipped = getEquipped();
-  return equipmentError(item, equipped) || (equipped.length + 1 > loadoutCapacity(maxEquipSlots, [...equipped, item]) ? '装备容量不足' : '');
+  return equipmentError(item, equipped) || (equipped.length + 1 > loadoutCapacity(maxEquipSlots, [...equipped, item]) ? '携带容量不足' : '');
 }
 export function getLoadoutError() {
-  const equipped = getEquipped();
   const accepted = [];
-  for (const item of equipped) {
-    const error = equipmentError(item, accepted);
-    if (error) return error;
-    accepted.push(item);
+  for (const item of getEquipped()) {
+    const error = equipmentError(item, accepted); if (error) return error; accepted.push(item);
   }
-  return equipped.length > getMaxEquipSlots() ? '携带物品超过当前特工容量，请先卸下多余物品' : '';
+  return accepted.length > getMaxEquipSlots() ? '携带物品超过当前特工容量，请先卸下多余物品' : '';
 }
-
-/** Load profile from localStorage */
-export function loadProfile() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      profile = JSON.parse(raw);
-      profile.stash ||= [];
-      profile.equipped ||= [];
-      // Reloading an unfinished local raid forfeits its reserved equipment.
-      if (profile.activeRaid) {
-        profile.lastRaidResult = { id: profile.activeRaid.id, outcome: 'abandoned' };
-        profile.activeRaid = null;
-        saveProfile();
-      }
-    } else {
-      profile = createDefault();
-      saveProfile();
-    }
-  } catch (e) {
-    console.warn('Failed to load profile, creating new:', e.message);
-    profile = createDefault();
-  }
-  return profile;
-}
-
-function createDefault() {
-  return {
-    username: '',
-    passHash: '',
-    coins: 50000,
-    stash: [],
-    equipped: [],
-    activeRaid: null,
-    createdAt: Date.now()
-  };
-}
-
-/** Persist to localStorage */
-export function saveProfile() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
-  } catch (e) {
-    console.warn('Failed to save profile:', e.message);
-  }
-}
-
-/** Get current coins */
-export function getCoins() {
-  return profile ? profile.coins : 50000;
-}
-
-/** Add coins (earning) */
 export function addCoins(amount) {
-  if (!Number.isFinite(amount) || amount < 0) throw new Error('无效金币数量');
-  if (!profile) loadProfile();
-  profile.coins += amount;
-  saveProfile();
-  return profile.coins;
+  lobbyOnly(); if (!Number.isSafeInteger(amount) || amount < 0) throw new Error('无效金币数量');
+  return transact(next => next.coins += amount);
 }
-
-/** Spend coins (buying) — returns false if insufficient */
 export function spendCoins(amount) {
-  if (!Number.isFinite(amount) || amount < 0) return false;
-  if (!profile) loadProfile();
-  if (profile.coins < amount) return false;
-  profile.coins -= amount;
-  saveProfile();
-  return true;
+  lobbyOnly(); if (!Number.isSafeInteger(amount) || amount < 0) return false;
+  if (getCoins() < amount) return false;
+  return transact(next => { next.coins -= amount; return true; });
 }
-
-/** Get stash items */
-export function getStash() {
-  if (!profile) loadProfile();
-  return profile.stash;
+export function addToStash(item) { lobbyOnly(); const itemCopy = items([item])[0]; return transact(next => next.stash.push(itemCopy)); }
+export function purchaseItem(item) {
+  lobbyOnly();
+  if (!item || !Number.isSafeInteger(item.price) || item.price <= 0) throw new Error('商品价格无效');
+  if (getCoins() < item.price) return false;
+  const itemCopy = items([{ ...item, value: item.price }])[0];
+  return transact(next => { next.coins -= item.price; next.stash.push(itemCopy); return true; });
 }
-
-/** Add item to stash */
-export function addToStash(item) {
-  if (!profile) loadProfile();
-  profile.stash.push(item);
-  saveProfile();
-}
-
-/** Remove item from stash by index */
 export function removeFromStash(index) {
-  if (!profile) loadProfile();
-  if (index >= 0 && index < profile.stash.length) {
-    profile.stash.splice(index, 1);
-    saveProfile();
-    return true;
-  }
-  return false;
+  lobbyOnly(); if (!validIndex(index, getStash())) return false;
+  return transact(next => { next.stash.splice(index,1); return true; });
 }
-
-/** Get/set username & password */
-export function getUsername() {
-  if (!profile) loadProfile();
-  return profile.username || '';
-}
-
-export function setUsername(name) {
-  if (!profile) loadProfile();
-  profile.username = name;
-  saveProfile();
-}
-
-/** Simple hash for client-side credential storage */
-function simpleHash(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash |= 0;
-  }
-  return hash.toString(16);
-}
-
-export function setPassword(pass) {
-  if (!profile) loadProfile();
-  profile.passHash = pass ? simpleHash(pass) : '';
-  saveProfile();
-}
-
-export function checkPassword(pass) {
-  if (!profile) loadProfile();
-  if (!profile.passHash) return true; // no password set yet
-  return simpleHash(pass) === profile.passHash;
-}
-
-export function hasPassword() {
-  if (!profile) loadProfile();
-  return !!profile.passHash;
-}
-
-/** Get full profile */
-export function getProfile() {
-  if (!profile) loadProfile();
-  return profile;
-}
-
-/** Sell item from stash by index, returns coins gained */
-export function sellStashItem(index) {
-  if (!profile) loadProfile();
-  if (index >= 0 && index < profile.stash.length) {
-    const item = profile.stash[index];
-    const sellPrice = Math.floor((item.value ?? 0) * 0.4); // 40% resale
-    profile.stash.splice(index, 1);
-    profile.coins += sellPrice;
-    saveProfile();
-    return sellPrice;
-  }
-  return 0;
-}
-
-/** Get equipped loadout items */
-export function getEquipped() {
-  if (!profile) loadProfile();
-  if (!profile.equipped) profile.equipped = [];
-  return profile.equipped;
-}
-
-/** Equip within the selected operator's capacity and gear limits. */
-export function equipItem(stashIndex) {
-  if (!profile) loadProfile();
-  if (!profile.equipped) profile.equipped = [];
-  if (stashIndex < 0 || stashIndex >= profile.stash.length) return false;
-  const item = profile.stash[stashIndex];
-  if (profile.activeRaid || getEquipError(item)) return false;
-  profile.stash.splice(stashIndex, 1);
-  profile.equipped.push(item);
-  saveProfile();
-  return true;
-}
-
-/** Unequip item back to stash */
-export function unequipItem(equipIndex) {
-  if (!profile) loadProfile();
-  if (!profile.equipped) profile.equipped = [];
-  if (equipIndex >= 0 && equipIndex < profile.equipped.length) {
-    const item = profile.equipped.splice(equipIndex, 1)[0];
-    profile.stash.push(item);
-    saveProfile();
-    return true;
-  }
-  return false;
-}
-
-/** Clear equipped loadout (items lost on death) */
-export function clearEquipped() {
-  if (!profile) loadProfile();
-  profile.equipped = [];
-  saveProfile();
-}
-
-/** Batch equip — returns count equipped */
+export function equipItem(index) { return equipItems([index]) === 1; }
 export function equipItems(indices) {
-  if (!profile) loadProfile();
-  let count = 0;
-  // Sort descending so we can splice safely
-  const sorted = [...new Set(indices)].sort((a, b) => b - a);
-  for (const idx of sorted) {
-    if (equipItem(idx)) count++;
+  lobbyOnly();
+  const selected = uniqueIndices(indices, getStash()); if (!selected.length) return 0;
+  const next = clone(); let count = 0;
+  for (const index of selected) {
+    const item = next.stash[index];
+    if (equipmentError(item, next.equipped) || next.equipped.length + 1 > loadoutCapacity(maxEquipSlots, [...next.equipped,item])) continue;
+    next.equipped.push(next.stash.splice(index,1)[0]); count++;
   }
-  if (count > 0) saveProfile();
+  if (count) persist(next);
   return count;
 }
-
-/** Batch sell — returns total coins gained */
+export function unequipItem(index) {
+  lobbyOnly(); if (!validIndex(index, getEquipped())) return false;
+  return transact(next => { next.stash.push(next.equipped.splice(index,1)[0]); return true; });
+}
+export function clearEquipped() { lobbyOnly(); return transact(next => { next.equipped = []; }); }
+export function salePrice(item) {
+  const value = Number.isFinite(item?.value) ? Math.max(0,item.value) : 0;
+  return Math.floor(value * (itemCategory(item) === 'valuable' ? 1 : 0.4));
+}
+export function sellStashItem(index) { return sellStashItems([index]); }
 export function sellStashItems(indices) {
-  if (!profile) loadProfile();
-  let total = 0;
-  const sorted = [...new Set(indices)].sort((a, b) => b - a);
-  for (const idx of sorted) {
-    if (idx < 0 || idx >= profile.stash.length) continue;
-    const item = profile.stash[idx];
-    total += Math.floor((item.value ?? 0) * 0.4);
-    profile.stash.splice(idx, 1);
-  }
-  if (sorted.length > 0) { profile.coins += total; saveProfile(); }
-  return total;
+  lobbyOnly(); const selected = uniqueIndices(indices, getStash()); if (!selected.length) return 0;
+  return transact(next => {
+    let total = 0;
+    for (const index of selected) total += salePrice(next.stash.splice(index,1)[0]);
+    next.coins += total; next.stats.earnings += total; return total;
+  });
 }
-
-/** Sell entire stash — returns total coins */
-export function sellAllStash() {
-  if (!profile) loadProfile();
-  let total = 0;
-  for (const item of profile.stash) {
-    total += Math.floor((item.value ?? 0) * 0.4);
-  }
-  profile.stash = [];
-  profile.coins += total;
-  saveProfile();
-  return total;
-}
-
-/** Reset entire profile to defaults (clear account) */
+export function sellAllStash() { return sellStashItems(getStash().map((_, index) => index)); }
 export function resetProfile() {
-  localStorage.removeItem(STORAGE_KEY);
-  profile = createDefault();
-  saveProfile();
+  persist(createDefault());
+  try { localStorage.removeItem(LEGACY_KEY); } catch { /* No account data is read by this game. */ }
 }
-
-// Reserve gear before the raid starts. A single persisted write commits each
-// transition, and a matching active id is required for settlement.
 export function beginRaid(id) {
-  if (!profile) loadProfile();
-  if (profile.activeRaid) throw new Error('已有行动尚未结束');
-  const error = getLoadoutError();
-  if (error) throw new Error(error);
-  const equipped = profile.equipped.map(item => ({ ...item }));
-  const next = { ...profile, equipped: [], activeRaid: { id, equipped } };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  profile = next;
+  ensure(); if (profile.activeRaid) throw new Error('已有行动尚未结束');
+  if (typeof id !== 'string' || !id) throw new Error('行动标识无效');
+  const error = getLoadoutError(); if (error) throw new Error(error);
+  const equipped = profile.equipped.map(item => ({...item}));
+  persist({ ...profile, equipped: [], activeRaid: { id, equipped } });
   return equipped;
 }
-
-export function settleRaid(id, survived, gear = [], inventory = [], bonus = 5000) {
-  if (!profile) loadProfile();
-  if (!profile.activeRaid || profile.activeRaid.id !== id) return false;
-  const next = {
-    ...profile, activeRaid: null,
-    equipped: survived ? [...gear, ...inventory.filter(item => item.broughtIn).map(item => ({ id: item.type, emoji: item.emoji, name: item.name, value: item.value ?? 0 }))] : [],
-    stash: survived ? [...profile.stash, ...inventory.filter(item => !item.broughtIn).map(item => ({ id: item.type, emoji: item.emoji, name: item.name, value: item.value ?? 0 }))] : profile.stash,
-    coins: profile.coins + (survived ? bonus : 0),
-    lastRaidResult: { id, outcome: survived ? 'extracted' : 'dead' }
-  };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  profile = next;
-  return true;
+export function settleRaid(id, survived, gear = [], inventory = [], bonus = 0, summary = {}) {
+  ensure(); if (!profile.activeRaid || profile.activeRaid.id !== id) return false;
+  const cost = survived ? number(summary.extractionCost) : 0;
+  if (cost > profile.coins) throw new Error('余额不足，无法支付撤离费用');
+  const carried = list => list.map(item => ({ id: item.type || item.id, emoji: item.emoji, name: item.name, value: item.value ?? 0 }));
+  const newLoot = inventory.filter(item => !item.broughtIn);
+  const value = newLoot.reduce((sum,item) => sum + (item.value || 0),0);
+  const next = clone();
+  next.activeRaid = null;
+  next.equipped = survived ? items([...gear, ...carried(inventory.filter(item => item.broughtIn))]) : [];
+  if (survived) next.stash.push(...items(carried(newLoot)));
+  next.coins += (survived ? number(bonus) - cost : 0);
+  next.stats.raids++; next.stats[survived ? 'extracts' : 'deaths']++;
+  next.stats.kills += number(summary.kills);
+  if (survived) next.stats.bestHaul = Math.max(next.stats.bestHaul, value);
+  next.lastRaidResult = { id, outcome: summary.outcome || (survived ? 'extracted' : 'dead'), value: survived ? value : 0,
+    kills: number(summary.kills), duration: number(summary.duration), extractionCost: cost };
+  persist(next); return true;
 }
-
-/** Restore reserved gear only when deployment failed before gameplay started. */
 export function cancelDeployment(id) {
   if (!profile?.activeRaid || profile.activeRaid.id !== id) return false;
-  const next = { ...profile, equipped: profile.activeRaid.equipped, activeRaid: null };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  profile = next;
-  return true;
+  persist({ ...profile, equipped: profile.activeRaid.equipped, activeRaid: null }); return true;
 }

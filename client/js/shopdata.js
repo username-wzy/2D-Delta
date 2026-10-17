@@ -1,5 +1,5 @@
 // shopdata.js - Shop item loader
-import { getCoins, spendCoins, addToStash } from './economy.js';
+import { getCoins, purchaseItem } from './economy.js';
 
 let shopItems = [];
 
@@ -30,18 +30,12 @@ export function getShopItems() { return shopItems; }
 
 /** Try to buy an item. Returns { success, message } */
 export function buyItem(shopIndex) {
-  if (shopIndex < 0 || shopIndex >= shopItems.length) {
+  if (!Number.isInteger(shopIndex) || shopIndex < 0 || shopIndex >= shopItems.length) {
     return { success: false, message: '商品不存在' };
   }
   const item = shopItems[shopIndex];
-  if (!spendCoins(item.price)) {
+  if (!purchaseItem(item)) {
     return { success: false, message: `金币不足! 需要 $${item.price.toLocaleString()}` };
   }
-  addToStash({
-    id: item.id,
-    emoji: item.emoji,
-    name: item.name,
-    value: item.price
-  });
   return { success: true, message: `购买成功: ${item.name}` };
 }

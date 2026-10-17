@@ -1,7 +1,9 @@
 // sound.js - Procedural audio effects via Web Audio API (with try-catch silence)
+import { getSettings } from './settings.js';
 let audioCtx = null;
 
 function getCtx() {
+  if (!getSettings().sound) return null;
   if (!audioCtx) {
     try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
     catch (_) { return null; }
