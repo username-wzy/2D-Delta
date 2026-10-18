@@ -11,7 +11,7 @@
     "maxStamina": 120,
     "baseSpeed": 360,
     "sprintMultiplier": 1.7,
-    "maxSlots": 8,
+    "maxSlots": 24,
     "weaponId": "weapon_mp5"
   },
   {
@@ -26,7 +26,7 @@
     "maxStamina": 100,
     "baseSpeed": 300,
     "sprintMultiplier": 1.6,
-    "maxSlots": 12,
+    "maxSlots": 30,
     "weaponId": "tac_smg"
   },
   {
@@ -41,7 +41,7 @@
     "maxStamina": 70,
     "baseSpeed": 240,
     "sprintMultiplier": 1.4,
-    "maxSlots": 16,
+    "maxSlots": 36,
     "weaponId": "m249_saw"
   },
   {
@@ -56,7 +56,7 @@
     "maxStamina": 100,
     "baseSpeed": 320,
     "sprintMultiplier": 1.5,
-    "maxSlots": 14,
+    "maxSlots": 30,
     "passive": "regen",
     "passiveValue": 2,
     "weaponId": "weapon_mp5"
@@ -73,7 +73,7 @@
     "maxStamina": 90,
     "baseSpeed": 300,
     "sprintMultiplier": 1.5,
-    "maxSlots": 10,
+    "maxSlots": 24,
     "passive": "precision",
     "passiveValue": 0.3,
     "weaponId": "weapon_sniper"
@@ -90,7 +90,7 @@
     "maxStamina": 110,
     "baseSpeed": 330,
     "sprintMultiplier": 1.6,
-    "maxSlots": 14,
+    "maxSlots": 30,
     "passive": "fastSearch",
     "passiveValue": 0.5,
     "weaponId": "weapon_p90"

@@ -7,54 +7,59 @@
   <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="style.css">
   <style>
-    html { height: auto; min-height: 100%; overflow: auto; }
-    body { height: auto; overflow: visible; min-height: 100vh; background: #0b111b; }
-    main { max-width: 1100px; padding: 44px 24px 64px; margin: auto; }
-    header { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
-    h1 { margin: 0 0 8px; font: 800 28px var(--font-display); }
-    p { color: #94a3b8; font-size: 14px; line-height: 1.8; }
-    a { color: #67e8f9; white-space: nowrap; }
-    h2 { margin: 36px 0 14px; font-size: 17px; color: #cbd5e1; }
-    .asset-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(136px, 1fr)); gap: 10px; }
-    .specimen { margin: 0; padding: 14px 8px; text-align: center; border: 1px solid #243041; border-radius: 8px; background: #121c29; }
-    .specimen .asset-icon { width: 112px; height: 112px; }
-    .specimen .asset-weapons { width: 128px; height: 64px; margin: 24px 0; }
-    .specimen .asset-tag { font-size: 10px; }
-    figcaption { font-size: 12px; margin-top: 10px; color: #cbd5e1; }
-    .retained { font-size: 30px; letter-spacing: 10px; line-height: 2; }
-    #asset-status { color: #67e8f9; }
-    @media (max-width: 500px) { header { align-items: flex-start; flex-direction: column; gap: 8px; } }
+    html { height:auto; min-height:100%; overflow:auto }
+    body { height:auto; overflow:visible; min-height:100vh; background:#101710 }
+    main { max-width:1180px; padding:44px 24px 64px; margin:auto }
+    header { display:flex; justify-content:space-between; align-items:center; gap:24px; border-bottom:1px solid #405039; padding-bottom:22px }
+    h1 { margin:0 0 8px; font:700 28px var(--font-display) }
+    p { color:#a4b29b; font-size:13px; line-height:1.8 }
+    a { color:#c9f568; white-space:nowrap }
+    h2 { margin:36px 0 14px; font-size:17px; color:#d4dfc9 }
+    .asset-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:10px }
+    .specimen { margin:0; padding:14px 8px; text-align:center; border:1px solid #38462f; background:#1b251a }
+    .specimen .asset-icon { width:112px; height:112px }
+    .specimen .asset-weapons { width:128px; height:64px; margin:24px 0 }
+    .specimen .asset-tag { font-size:10px }
+    figcaption { font-size:12px; margin-top:10px; color:#d0dcc4 }
+    figcaption small { display:block; color:#869a75; font:9px var(--font-mono); margin-top:6px }
+    #asset-status { color:#c9f568; min-height:24px }
+    @media(max-width:500px) { header {align-items:flex-start;flex-direction:column;gap:8px} }
   </style>
 </head>
 <body>
   <main>
-    <header><div><h1>2D Delta · 美术资产</h1><p>角色、武器与关键物品使用手绘图像；场景与提示保留 Emoji。</p></div><a href="./">🦅 返回游戏</a></header>
-    <p id="asset-status" role="status">正在加载图像，暂时显示 Emoji…</p>
+    <header><div><h1>2D Delta · 美术资产</h1><p>角色、装备、战利品与场景全部使用图像。新增四级护甲维修包及二十种战利品。</p></div><a href="./">返回游戏</a></header>
+    <p id="asset-status" role="status">正在加载透明 PNG 图集…</p>
     <div id="collections"></div>
-    <h2>继续保留的 Emoji</h2>
-    <div class="retained" aria-label="树木、墙体、撤离、现金、钻石、首饰和状态提示">🌲 🧱 🚁 💵 💎 📿 ⌚ 💬 🔍 ❤️</div>
-    <p>图像加载失败时，游戏自动继续使用对应的原 Emoji。物品 ID、属性、存档与碰撞尺寸沿用原有规则。</p>
+    <p>图像临时不可用时显示中性线框轮廓。图像 ID 与旧存档兼容；物品占格尺寸由配置决定，图像比例始终保持。</p>
   </main>
   <script type="module">
-    import { allAssets, assetMarkup, loadGameAssets } from './js/assets.js';
-    const titles = { operators: '特工 · 6 名', enemies: '敌人 · 7 类', weapons: '枪械 · 8 把', equipment: '装备与容器 · 16 件' };
+    import { allAssets, assetMarkup, loadGameAssets, atlasDefinitions } from './js/assets.js';
+    import { allItems, loadLootData } from './js/lootdata.js';
+    const titles = { operators:'特工', enemies:'敌人', weapons:'枪械', equipment:'装备与搜索容器', inventory:'补给、维修与物资', valuables:'电子、工业与高价值战利品', world:'场景与撤离点' };
+    await loadLootData();
+    const defs = new Map(allItems().map(item => [item.id,item]));
     const collections = document.getElementById('collections');
     for (const [sheet, title] of Object.entries(titles)) {
+      const assets = allAssets().filter(asset => asset.sheet === sheet);
       const section = document.createElement('section');
-      const heading = document.createElement('h2'); heading.textContent = title;
+      const heading = document.createElement('h2'); heading.textContent = title + ' / ' + assets.length;
       const grid = document.createElement('div'); grid.className = 'asset-grid';
-      for (const asset of allAssets().filter(asset => asset.sheet === sheet)) {
+      for (const asset of assets) {
+        const def = defs.get(asset.key);
         const figure = document.createElement('figure'); figure.className = 'specimen';
-        figure.innerHTML = `${assetMarkup(asset.key, { fallback: '📦' })}<figcaption>${asset.label}</figcaption>`;
-        grid.appendChild(figure);
+        figure.innerHTML = assetMarkup(asset.key);
+        const caption = document.createElement('figcaption'); caption.textContent = asset.label;
+        const metadata = document.createElement('small');
+        metadata.textContent = def ? `${def.gridW} × ${def.gridH} 格 / 稀有度 ${def.rarity}` : asset.key;
+        caption.appendChild(metadata); figure.appendChild(caption); grid.appendChild(figure);
       }
-      section.append(heading, grid); collections.appendChild(section);
+      section.append(heading,grid); collections.appendChild(section);
     }
-    const loaded = await loadGameAssets();
-    const count = loaded.filter(sheet => sheet.ready).length;
-    document.getElementById('asset-status').textContent = count === 4
-      ? '37 项资产已加载 · 4 张透明 PNG 图集'
-      : `${count}/4 张图集已加载；未加载的图集使用 Emoji。`;
+    const loaded = await loadGameAssets(), count = loaded.filter(sheet => sheet.ready).length, total = Object.keys(atlasDefinitions).length;
+    document.getElementById('asset-status').textContent = count === total
+      ? `${allAssets().length} 项资产已加载 / ${total} 张透明 PNG 图集`
+      : `${count}/${total} 张图集已加载；未加载的图集显示线框轮廓。`;
   </script>
 </body>
 </html>

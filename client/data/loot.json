@@ -1,245 +1,595 @@
 [
   {
     "id": "cash",
-    "emoji": "💵",
+    "emoji": "",
     "name": "大捆现金 ($5,000)",
     "value": 5000,
     "weight": 20,
     "onPickup": null,
-    "rarity": 2
+    "rarity": 2,
+    "gridW": 1,
+    "gridH": 1,
+    "category": "valuable"
   },
   {
     "id": "gem",
-    "emoji": "💎",
+    "emoji": "",
     "name": "高价值蓝钻 ($35,000)",
     "value": 35000,
     "weight": 5,
     "onPickup": null,
-    "rarity": 6
+    "rarity": 6,
+    "gridW": 1,
+    "gridH": 1,
+    "category": "valuable"
   },
   {
     "id": "box",
-    "emoji": "📦",
+    "emoji": "",
     "name": "军用物资箱",
     "value": 8000,
     "weight": 10,
     "onPickup": null,
-    "rarity": 3
+    "rarity": 3,
+    "gridW": 2,
+    "gridH": 2,
+    "category": "valuable"
   },
   {
     "id": "backpack",
-    "emoji": "🎒",
-    "name": "遗落的特工背包",
+    "emoji": "",
+    "name": "战术背包",
     "value": 3000,
     "weight": 8,
     "onPickup": null,
-    "rarity": 2
+    "rarity": 2,
+    "gridW": 3,
+    "gridH": 3
   },
   {
     "id": "weapon_ak47",
-    "emoji": "🔫",
+    "emoji": "",
     "name": "突击步枪 (AK-47)",
     "value": 12000,
     "weight": 5,
     "onPickup": null,
-    "rarity": 3
+    "rarity": 3,
+    "gridW": 2,
+    "gridH": 4
   },
   {
     "id": "weapon_mp5",
-    "emoji": "🔫",
+    "emoji": "",
     "name": "冲锋枪 (MP5-SD)",
     "value": 9000,
     "weight": 6,
     "onPickup": null,
-    "rarity": 3
+    "rarity": 3,
+    "gridW": 2,
+    "gridH": 3
   },
   {
     "id": "weapon_shotgun",
-    "emoji": "🔫",
+    "emoji": "",
     "name": "霰弹枪 (M870)",
     "value": 7000,
     "weight": 6,
     "onPickup": null,
-    "rarity": 3
+    "rarity": 3,
+    "gridW": 1,
+    "gridH": 5
   },
   {
     "id": "armor_light",
-    "emoji": "🛡️",
+    "emoji": "",
     "name": "轻型防弹衣 (Class 2)",
     "value": 4000,
     "weight": 8,
     "onPickup": null,
-    "rarity": 2
+    "rarity": 2,
+    "gridW": 3,
+    "gridH": 3,
+    "maxDurability": 120,
+    "armorClass": 2
   },
   {
     "id": "armor_heavy",
-    "emoji": "🛡️",
+    "emoji": "",
     "name": "重型防弹护甲 (Class 5)",
     "value": 15000,
     "weight": 4,
     "onPickup": null,
-    "rarity": 4
+    "rarity": 4,
+    "gridW": 3,
+    "gridH": 4,
+    "maxDurability": 220,
+    "armorClass": 5
   },
   {
     "id": "medkit",
-    "emoji": "💊",
+    "emoji": "",
     "name": "军用医疗包 (+50 HP)",
     "value": 2000,
     "weight": 10,
     "onPickup": "heal_50",
     "rarity": 2,
-    "useTime": 3
+    "useTime": 3,
+    "gridW": 2,
+    "gridH": 1
   },
   {
     "id": "medkit_large",
-    "emoji": "💊",
+    "emoji": "",
     "name": "外科手术包 (+100 HP)",
     "value": 5000,
     "weight": 5,
     "onPickup": "heal_100",
     "rarity": 2,
-    "useTime": 5
+    "useTime": 5,
+    "gridW": 2,
+    "gridH": 2
   },
   {
     "id": "grenade",
-    "emoji": "🧨",
+    "emoji": "",
     "name": "破片手榴弹",
     "value": 3000,
     "weight": 5,
     "onPickup": null,
-    "rarity": 2
+    "rarity": 2,
+    "gridW": 1,
+    "gridH": 1
   },
   {
     "id": "ammo_9mm",
-    "emoji": "📦",
+    "emoji": "",
     "name": "9mm 弹药箱 (120发)",
     "value": 1500,
     "weight": 12,
     "onPickup": "ammo_9mm_120",
     "ammoType": "9mm",
     "ammoAmount": 120,
-    "rarity": 1
+    "rarity": 1,
+    "gridW": 1,
+    "gridH": 1
   },
   {
     "id": "ammo_rifle",
-    "emoji": "📦",
+    "emoji": "",
     "name": "步枪弹药箱 (90发)",
     "value": 2500,
     "weight": 8,
     "onPickup": "ammo_rifle_90",
     "ammoType": "rifle",
     "ammoAmount": 90,
-    "rarity": 2
+    "rarity": 2,
+    "gridW": 1,
+    "gridH": 2
   },
   {
     "id": "ammo_shell",
-    "emoji": "📦",
+    "emoji": "",
     "name": "霰弹弹药 (24发)",
     "value": 1800,
     "weight": 8,
     "onPickup": "ammo_shell_24",
     "ammoType": "shell",
     "ammoAmount": 24,
-    "rarity": 1
+    "rarity": 1,
+    "gridW": 1,
+    "gridH": 1
   },
   {
     "id": "keycard_red",
-    "emoji": "🔑",
+    "emoji": "",
     "name": "红色钥匙卡 (高价值房间)",
     "value": 50000,
     "weight": 1,
     "onPickup": null,
-    "rarity": 6
+    "rarity": 6,
+    "gridW": 1,
+    "gridH": 1
   },
   {
     "id": "keycard_blue",
-    "emoji": "🔑",
+    "emoji": "",
     "name": "蓝色钥匙卡 (武器库)",
     "value": 25000,
     "weight": 2,
     "onPickup": null,
-    "rarity": 5
+    "rarity": 5,
+    "gridW": 1,
+    "gridH": 1
   },
   {
     "id": "gold_chain",
-    "emoji": "📿",
+    "emoji": "",
     "name": "金项链 ($8,000)",
     "value": 8000,
     "weight": 7,
     "onPickup": null,
-    "rarity": 3
+    "rarity": 3,
+    "gridW": 1,
+    "gridH": 1,
+    "category": "valuable"
   },
   {
     "id": "flash_drive",
-    "emoji": "💾",
+    "emoji": "",
     "name": "加密U盘 (情报数据)",
     "value": 18000,
     "weight": 3,
     "onPickup": null,
-    "rarity": 4
+    "rarity": 4,
+    "gridW": 1,
+    "gridH": 1,
+    "category": "valuable"
   },
   {
     "id": "dogtag",
-    "emoji": "🏷️",
+    "emoji": "",
     "name": "特工身份牌 ($2,000)",
     "value": 2000,
     "weight": 15,
     "onPickup": null,
-    "rarity": 2
+    "rarity": 2,
+    "gridW": 1,
+    "gridH": 1,
+    "category": "valuable"
   },
   {
     "id": "weapon_m4",
-    "emoji": "🔫",
+    "emoji": "",
     "name": "M4A1 卡宾枪",
     "value": 18000,
     "weight": 4,
     "onPickup": null,
-    "rarity": 4
+    "rarity": 4,
+    "gridW": 2,
+    "gridH": 4
   },
   {
     "id": "weapon_sniper",
-    "emoji": "🔫",
+    "emoji": "",
     "name": "SVD 狙击步枪",
     "value": 32000,
     "weight": 2,
     "onPickup": null,
-    "rarity": 5
+    "rarity": 5,
+    "gridW": 2,
+    "gridH": 5
   },
   {
     "id": "injector",
-    "emoji": "💉",
+    "emoji": "",
     "name": "肾上腺素注射器 (+30 HP)",
     "value": 1200,
     "weight": 8,
     "onPickup": "heal_30",
     "rarity": 1,
-    "useTime": 2
+    "useTime": 2,
+    "gridW": 1,
+    "gridH": 1
   },
   {
     "id": "gold_watch",
-    "emoji": "⌚",
+    "emoji": "",
     "name": "高级金表 ($12,000)",
     "value": 12000,
     "weight": 6,
     "onPickup": null,
-    "rarity": 3
+    "rarity": 3,
+    "gridW": 1,
+    "gridH": 1,
+    "category": "valuable"
   },
   {
     "id": "night_vision",
-    "emoji": "👓",
+    "emoji": "",
     "name": "夜视仪 ($15,000)",
     "value": 15000,
     "weight": 4,
     "onPickup": null,
-    "rarity": 4
+    "rarity": 4,
+    "gridW": 2,
+    "gridH": 2,
+    "category": "valuable"
   },
   {
     "id": "keycard_green",
-    "emoji": "🔑",
+    "emoji": "",
     "name": "绿色钥匙卡 (档案室)",
     "value": 35000,
     "weight": 2,
     "onPickup": null,
-    "rarity": 6
+    "rarity": 6,
+    "gridW": 1,
+    "gridH": 1
+  },
+  {
+    "id": "weapon_p90",
+    "name": "P90 冲锋枪",
+    "value": 11000,
+    "weight": 4,
+    "rarity": 3,
+    "gridW": 2,
+    "gridH": 3,
+    "onPickup": null
+  },
+  {
+    "id": "repair_improvised",
+    "name": "自制维修包",
+    "value": 1500,
+    "weight": 7,
+    "rarity": 1,
+    "gridW": 1,
+    "gridH": 2,
+    "category": "repair",
+    "onUse": "repair",
+    "repairAmount": 40,
+    "useTime": 8,
+    "onPickup": null
+  },
+  {
+    "id": "repair_standard",
+    "name": "标准维修包",
+    "value": 4000,
+    "weight": 5,
+    "rarity": 2,
+    "gridW": 2,
+    "gridH": 2,
+    "category": "repair",
+    "onUse": "repair",
+    "repairAmount": 80,
+    "useTime": 7,
+    "onPickup": null
+  },
+  {
+    "id": "repair_precision",
+    "name": "精密维修包",
+    "value": 7500,
+    "weight": 3,
+    "rarity": 3,
+    "gridW": 2,
+    "gridH": 2,
+    "category": "repair",
+    "onUse": "repair",
+    "repairAmount": 120,
+    "useTime": 6,
+    "onPickup": null
+  },
+  {
+    "id": "repair_advanced",
+    "name": "高级维修包",
+    "value": 12000,
+    "weight": 2,
+    "rarity": 4,
+    "gridW": 2,
+    "gridH": 3,
+    "category": "repair",
+    "onUse": "repair",
+    "repairAmount": 180,
+    "useTime": 5,
+    "onPickup": null
+  },
+  {
+    "id": "circuit_board",
+    "name": "精密电路板",
+    "value": 4500,
+    "weight": 8,
+    "rarity": 2,
+    "gridW": 2,
+    "gridH": 1,
+    "category": "valuable",
+    "onPickup": null
+  },
+  {
+    "id": "hard_drive",
+    "name": "数据硬盘",
+    "value": 8000,
+    "weight": 5,
+    "rarity": 3,
+    "gridW": 2,
+    "gridH": 1,
+    "category": "valuable",
+    "onPickup": null
+  },
+  {
+    "id": "copper_wire",
+    "name": "铜线线圈",
+    "value": 1600,
+    "weight": 10,
+    "rarity": 1,
+    "gridW": 1,
+    "gridH": 2,
+    "category": "valuable",
+    "onPickup": null
+  },
+  {
+    "id": "reagent",
+    "name": "科研试剂",
+    "value": 16000,
+    "weight": 3,
+    "rarity": 4,
+    "gridW": 1,
+    "gridH": 2,
+    "category": "valuable",
+    "onPickup": null
+  },
+  {
+    "id": "radio_transceiver",
+    "name": "军用无线电",
+    "value": 10000,
+    "weight": 4,
+    "rarity": 3,
+    "gridW": 2,
+    "gridH": 2,
+    "category": "valuable",
+    "onPickup": null
+  },
+  {
+    "id": "motor_pump",
+    "name": "高压泵电机",
+    "value": 18000,
+    "weight": 4,
+    "rarity": 3,
+    "gridW": 2,
+    "gridH": 3,
+    "category": "valuable",
+    "onPickup": null
+  },
+  {
+    "id": "industrial_battery",
+    "name": "工业蓄电池",
+    "value": 6500,
+    "weight": 6,
+    "rarity": 2,
+    "gridW": 2,
+    "gridH": 2,
+    "category": "valuable",
+    "onPickup": null
+  },
+  {
+    "id": "portable_generator",
+    "name": "便携发电机",
+    "value": 58000,
+    "weight": 1,
+    "rarity": 5,
+    "gridW": 3,
+    "gridH": 4,
+    "category": "valuable",
+    "onPickup": null
+  },
+  {
+    "id": "graphics_card",
+    "name": "高性能显卡",
+    "value": 42000,
+    "weight": 2,
+    "rarity": 5,
+    "gridW": 2,
+    "gridH": 2,
+    "category": "valuable",
+    "onPickup": null
+  },
+  {
+    "id": "cpu",
+    "name": "处理器芯片",
+    "value": 22000,
+    "weight": 3,
+    "rarity": 4,
+    "gridW": 1,
+    "gridH": 1,
+    "category": "valuable",
+    "onPickup": null
+  },
+  {
+    "id": "spectrum_analyzer",
+    "name": "频谱分析仪",
+    "value": 28000,
+    "weight": 3,
+    "rarity": 4,
+    "gridW": 2,
+    "gridH": 3,
+    "category": "valuable",
+    "onPickup": null
+  },
+  {
+    "id": "military_laptop",
+    "name": "军用加固电脑",
+    "value": 65000,
+    "weight": 1,
+    "rarity": 5,
+    "gridW": 3,
+    "gridH": 3,
+    "category": "valuable",
+    "onPickup": null
+  },
+  {
+    "id": "oxygen_cylinder",
+    "name": "医用氧气瓶",
+    "value": 5500,
+    "weight": 5,
+    "rarity": 2,
+    "gridW": 1,
+    "gridH": 3,
+    "category": "valuable",
+    "onPickup": null
+  },
+  {
+    "id": "sealant",
+    "name": "工业密封胶",
+    "value": 1200,
+    "weight": 8,
+    "rarity": 1,
+    "gridW": 1,
+    "gridH": 2,
+    "category": "valuable",
+    "onPickup": null
+  },
+  {
+    "id": "wrench",
+    "name": "活动扳手",
+    "value": 900,
+    "weight": 9,
+    "rarity": 1,
+    "gridW": 1,
+    "gridH": 2,
+    "category": "valuable",
+    "onPickup": null
+  },
+  {
+    "id": "intelligence_docs",
+    "name": "机密情报文件",
+    "value": 24000,
+    "weight": 3,
+    "rarity": 4,
+    "gridW": 2,
+    "gridH": 2,
+    "category": "valuable",
+    "onPickup": null
+  },
+  {
+    "id": "gold_bar",
+    "name": "投资金条",
+    "value": 60000,
+    "weight": 1,
+    "rarity": 5,
+    "gridW": 2,
+    "gridH": 1,
+    "category": "valuable",
+    "onPickup": null
+  },
+  {
+    "id": "amber_statuette",
+    "name": "琥珀雕像",
+    "value": 110000,
+    "weight": 1,
+    "rarity": 6,
+    "gridW": 2,
+    "gridH": 3,
+    "category": "valuable",
+    "onPickup": null
+  },
+  {
+    "id": "camera",
+    "name": "专业数码相机",
+    "value": 26000,
+    "weight": 3,
+    "rarity": 4,
+    "gridW": 2,
+    "gridH": 2,
+    "category": "valuable",
+    "onPickup": null
+  },
+  {
+    "id": "microscope",
+    "name": "实验室显微镜",
+    "value": 145000,
+    "weight": 1,
+    "rarity": 6,
+    "gridW": 3,
+    "gridH": 4,
+    "category": "valuable",
+    "onPickup": null
   }
 ]

@@ -6,36 +6,37 @@
 <title>2D Delta 地图编辑器</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'JetBrains Mono', 'Consolas', monospace; background: #0a0a14; color: #f8fafc; display: flex; height: 100vh; overflow: hidden; }
-.sidebar { width: 300px; padding: 16px; background: #111827; border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+body { font-family: 'JetBrains Mono', 'Consolas', monospace; background: #101710; color: #f8fafc; display: flex; height: 100vh; overflow: hidden; }
+.sidebar { width: 300px; padding: 16px; background: #192218; border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
 .main { flex: 1; display: flex; flex-direction: column; }
-.toolbar { padding: 10px 16px; background: #111827; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.canvas-wrap { flex: 1; overflow: auto; position: relative; background: #030712; }
-canvas { display: block; image-rendering: pixelated; }
-h2 { font-size: 1rem; color: #06b6d4; letter-spacing: 0.1em; }
-label { font-size: 0.7rem; color: #94a3b8; display: flex; flex-direction: column; gap: 4px; }
+.toolbar { padding: 10px 16px; background: #192218; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.canvas-wrap { flex: 1; overflow: auto; position: relative; background: #0c120d; }
+canvas { display: block; }
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #c9f568;outline-offset:2px}
+h2 { font-size: 1rem; color: #c9f568; letter-spacing: 0.1em; }
+label { font-size: 0.7rem; color: #9da992; display: flex; flex-direction: column; gap: 4px; }
 input, textarea, select, button { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; color: #f8fafc; padding: 6px 10px; font-family: inherit; font-size: 0.75rem; outline: none; }
-input:focus, select:focus { border-color: #06b6d4; }
-button { cursor: pointer; background: rgba(6,182,212,0.15); border-color: rgba(6,182,212,0.3); font-weight: 700; letter-spacing: 0.05em; transition: all 0.15s; }
-button:hover { background: rgba(6,182,212,0.25); }
+input:focus, select:focus { border-color: #c9f568; }
+button { cursor: pointer; background: rgba(164,202,100,0.15); border-color: rgba(164,202,100,0.3); font-weight: 700; letter-spacing: 0.05em; transition: all 0.15s; }
+button:hover { background: rgba(164,202,100,0.25); }
 button.danger { background: rgba(244,63,94,0.15); border-color: rgba(244,63,94,0.3); }
 button.danger:hover { background: rgba(244,63,94,0.25); }
 button.green { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.3); }
 .btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
 .tool-btn { padding: 6px 14px; font-size: 0.75rem; }
-.tool-btn.active { background: rgba(6,182,212,0.35); border-color: #06b6d4; box-shadow: 0 0 10px rgba(6,182,212,0.3); }
+.tool-btn.active { background: rgba(164,202,100,0.35); border-color: #c9f568; box-shadow: 0 0 10px rgba(164,202,100,0.3); }
 .tile-label { display: inline-block; width: 16px; height: 16px; border-radius: 3px; margin-right: 4px; vertical-align: middle; }
 .entity-list { max-height: 160px; overflow-y: auto; font-size: 0.7rem; }
 .entity-item { padding: 4px 6px; border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
 .entity-item:hover { background: rgba(255,255,255,0.06); }
 .entity-item .del { color: #f43f5e; cursor: pointer; padding: 2px 6px; }
-.stats { font-size: 0.7rem; color: #94a3b8; }
+.stats { font-size: 0.7rem; color: #9da992; }
 .stats span { color: #f59e0b; }
 </style>
 </head>
 <body>
 <div class="sidebar">
-  <h2>🗺️ 2D Delta 地图编辑器</h2>
+  <h2>2D Delta 地图编辑器</h2>
   <label>地图名称 <input id="mapName" value="新地图"></label>
   <div class="btn-row" style="gap:4px;">
     <label style="flex-direction:row;align-items:center;gap:4px;">宽<input id="mapW" type="number" value="50" min="10" max="100" style="width:55px;"></label>
@@ -46,24 +47,24 @@ button.green { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,
 
   <label>绘制工具</label>
   <div class="btn-row">
-    <button id="toolEmpty" class="tool-btn active">⬜ 空地 (0)</button>
-    <button id="toolWall" class="tool-btn">🧱 墙壁 (1)</button>
-    <button id="toolTree" class="tool-btn">🌲 树木 (2)</button>
-    <button id="toolErase" class="tool-btn danger">🗑️ 擦除</button>
+    <button id="toolEmpty" class="tool-btn active">空地 (0)</button>
+    <button id="toolWall" class="tool-btn">墙壁 (1)</button>
+    <button id="toolTree" class="tool-btn">树木 (2)</button>
+    <button id="toolErase" class="tool-btn danger">擦除</button>
   </div>
 
   <label>实体放置模式</label>
   <div class="btn-row">
-    <button id="modeSpawn" class="tool-btn">🟢 出生点</button>
-    <button id="modeContainer" class="tool-btn">📦 容器</button>
-    <button id="modeExtract" class="tool-btn">🚁 撤离点</button>
-    <button id="modePatrol" class="tool-btn">🔵 巡逻点</button>
+    <button id="modeSpawn" class="tool-btn">出生点</button>
+    <button id="modeContainer" class="tool-btn">容器</button>
+    <button id="modeExtract" class="tool-btn">撤离点</button>
+    <button id="modePatrol" class="tool-btn">巡逻点</button>
   </div>
 
   <div id="entityExtra" style="display:none;">
     <label>队伍 <select id="spawnTeam"><option value="pmc">PMC</option><option value="scav">Scav</option></select></label>
-    <label id="containerTypeLabel" style="display:none;">容器类型 <select id="containerType"><option value="filing_cabinet">🗄️ 文件柜</option><option value="wardrobe">🚪 衣柜</option><option value="safe">🔐 保险柜</option></select></label>
-    <label id="requiredKeyLabel" style="display:none;">保险柜钥匙 <select id="requiredKey"><option value="keycard_red">🔴 红卡</option><option value="keycard_blue">🔵 蓝卡</option><option value="keycard_green">🟢 绿卡</option></select></label>
+    <label id="containerTypeLabel" style="display:none;">容器类型 <select id="containerType"><option value="filing_cabinet">文件柜</option><option value="wardrobe">衣柜</option><option value="safe">保险柜</option></select></label>
+    <label id="requiredKeyLabel" style="display:none;">保险柜钥匙 <select id="requiredKey"><option value="keycard_red">红卡</option><option value="keycard_blue">蓝卡</option><option value="keycard_green">绿卡</option></select></label>
     <label id="extractSizeLabel" style="display:none;">撤离点大小 (tiles) <input id="extractW" type="number" value="3" min="1" max="6" style="width:55px;"> x <input id="extractH" type="number" value="3" min="1" max="6" style="width:55px;"></label>
   </div>
 
@@ -74,10 +75,10 @@ button.green { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,
     撤离点: <span id="statExtracts">0</span>
   </div>
 
-  <button id="exportBtn" class="green">📥 导出 JSON</button>
-  <button id="importBtn">📤 导入 JSON</button>
+  <button id="exportBtn" class="green">导出 JSON</button>
+  <button id="importBtn">导入 JSON</button>
   <input type="file" id="importFile" accept=".json" style="display:none;">
-  <button id="clearBtn" class="danger">🗑️ 清空全部</button>
+  <button id="clearBtn" class="danger">清空全部</button>
 
   <label>导入 JSON 文本
     <textarea id="importText" rows="4" placeholder="粘贴 JSON 到这里..." style="resize:vertical;"></textarea>
@@ -87,14 +88,15 @@ button.green { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,
 
 <div class="main">
   <div class="toolbar">
-    <span style="font-size:0.7rem;color:#94a3b8;">左键放置 | 右键删除实体 | 中键拖动平移 | 滚轮缩放</span>
+    <span style="font-size:0.7rem;color:#9da992;">左键放置 | 右键删除实体 | 中键拖动平移 | 滚轮缩放</span>
   </div>
   <div class="canvas-wrap">
     <canvas id="grid"></canvas>
   </div>
 </div>
 
-<script>
+<script type="module">
+import { drawAsset, loadGameAssets } from '../client/js/assets.js';
 const canvas = document.getElementById('grid');
 const ctx = canvas.getContext('2d');
 
@@ -167,7 +169,7 @@ function addEntity(x, y) {
       mapData.containers.push({ x, y, type: document.getElementById('containerType').value, requiredKey: document.getElementById('containerType').value === 'safe' ? document.getElementById('requiredKey').value : null });
       break;
     case 'extract':
-      mapData.extractions.push({ x, y, w: parseInt(document.getElementById('extractW').value)||3, h: parseInt(document.getElementById('extractH').value)||3, name: '撤离点', emoji: '🚁' });
+      mapData.extractions.push({ x, y, w: parseInt(document.getElementById('extractW').value)||3, h: parseInt(document.getElementById('extractH').value)||3, name: '撤离点' });
       break;
     case 'patrol':
       mapData.patrolNodes.push({ x, y, radius: 200 });
@@ -276,6 +278,7 @@ document.getElementById('clearBtn').addEventListener('click', clearAll);
 document.getElementById('toolEmpty').addEventListener('click', () => { currentTool=0; updateToolUI(); });
 document.getElementById('toolWall').addEventListener('click', () => { currentTool=1; updateToolUI(); });
 document.getElementById('toolTree').addEventListener('click', () => { currentTool=2; updateToolUI(); });
+document.getElementById('toolErase').addEventListener('click', () => { currentTool=0; updateToolUI(); });
 function updateToolUI() {
   document.querySelectorAll('#toolEmpty,#toolWall,#toolTree').forEach(b => b.classList.remove('active'));
   if (currentTool === 0) document.getElementById('toolEmpty').classList.add('active');
@@ -332,19 +335,16 @@ function render() {
     for (let x = 0; x < mapData.width; x++) {
       const val = mapData.tiles[y][x];
       const px = x * ts, py = y * ts;
-      if (val === 0) { ctx.fillStyle = '#16162a'; }
-      else if (val === 1) { ctx.fillStyle = '#3d3d5c'; }
-      else if (val === 2) { ctx.fillStyle = '#1a3a1a'; }
+      if (val === 0) { ctx.fillStyle = '#192019'; }
+      else if (val === 1) { ctx.fillStyle = '#333b32'; }
+      else if (val === 2) { ctx.fillStyle = '#263523'; }
       ctx.fillRect(px, py, ts, ts);
-      // Tile emoji
-      if (val === 1) {
-        ctx.fillStyle = '#888';
-        ctx.font = `${ts*0.5}px sans-serif`;
-        ctx.fillText('🧱', px+ts*0.12, py+ts*0.65);
-      } else if (val === 2) {
-        ctx.fillStyle = '#4a4';
-        ctx.font = `${ts*0.5}px sans-serif`;
-        ctx.fillText('🌲', px+ts*0.12, py+ts*0.65);
+      if (val === 1 || val === 2) {
+        const drawn = drawAsset(ctx, val === 1 ? 'world/wall' : 'world/tree', px - ts * .06, py - ts * .06, ts * 1.12, ts * 1.12);
+        if (!drawn) {
+          ctx.strokeStyle = val === 1 ? '#7d8871' : '#728a59';
+          ctx.strokeRect(px + ts * .16, py + ts * .16, ts * .68, ts * .68);
+        }
       }
       // Grid line
       ctx.strokeStyle = 'rgba(255,255,255,0.04)';
@@ -356,10 +356,11 @@ function render() {
   // Spawns
   for (const s of mapData.spawns) {
     const px = s.x * ts + ts/2, py = s.y * ts + ts/2;
-    ctx.fillStyle = s.team === 'pmc' ? 'rgba(6,182,212,0.35)' : 'rgba(244,63,94,0.3)';
+    ctx.fillStyle = s.team === 'pmc' ? 'rgba(164,202,100,0.35)' : 'rgba(244,63,94,0.3)';
     ctx.beginPath(); ctx.arc(px, py, ts*0.35, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#fff'; ctx.font = `${ts*0.35}px sans-serif`;
-    ctx.fillText(s.team==='pmc'?'🕵️':'🧟', px-ts*0.18, py+ts*0.12);
+    if (!drawAsset(ctx, s.team === 'pmc' ? 'scout' : 'scav_gunner', px-ts*.44, py-ts*.44, ts*.88, ts*.88, s.team === 'pmc' ? 'operator' : 'bot')) {
+      ctx.fillStyle='#e0e8d4'; ctx.font=`bold ${ts*.28}px monospace`; ctx.fillText(s.team==='pmc'?'P':'S',px-ts*.1,py+ts*.1);
+    }
     // label
     ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = `${ts*0.22}px monospace`;
     ctx.fillText(`${s.x},${s.y}`, px-ts*0.25, py-ts*0.45);
@@ -372,23 +373,29 @@ function render() {
     ctx.fillRect(px-ts*0.35, py-ts*0.35, ts*0.7, ts*0.7);
     ctx.strokeStyle = 'rgba(245,158,11,0.6)'; ctx.lineWidth = 2;
     ctx.strokeRect(px-ts*0.35, py-ts*0.35, ts*0.7, ts*0.7);
-    const emoji = { safe:'🔐', filing_cabinet:'🗄️', wardrobe:'🚪' }[c.type] || '📦';
-    ctx.fillStyle = '#fff'; ctx.font = `${ts*0.4}px sans-serif`;
-    ctx.fillText(emoji, px-ts*0.2, py+ts*0.15);
+    if (!drawAsset(ctx, c, px-ts*.44, py-ts*.44, ts*.88, ts*.88)) {
+      ctx.strokeStyle='#c7b58a'; ctx.strokeRect(px-ts*.24,py-ts*.24,ts*.48,ts*.48);
+    }
   }
 
-  // Extractions
+  // Match gameplay: x/y are the extraction rectangle's top-left tile.
   for (const ext of mapData.extractions) {
-    const px = ext.x * ts + ts/2, py = ext.y * ts + ts/2;
-    const ew = (ext.w||3)*ts, eh = (ext.h||3)*ts;
-    ctx.fillStyle = 'rgba(16,185,129,0.2)';
-    ctx.fillRect(px-ew/2, py-eh/2, ew, eh);
-    ctx.strokeStyle = 'rgba(16,185,129,0.5)'; ctx.lineWidth = 2; ctx.setLineDash([6,3]);
-    ctx.strokeRect(px-ew/2, py-eh/2, ew, eh); ctx.setLineDash([]);
-    ctx.fillStyle = '#fff'; ctx.font = `${ts*0.5}px sans-serif`;
-    ctx.fillText(ext.emoji||'🚁', px-ts*0.2, py+ts*0.15);
-    ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = `${ts*0.2}px monospace`;
-    ctx.fillText(ext.name||'', px-ts*0.4, py-eh/2-4);
+    const x=ext.x*ts, y=ext.y*ts, ew=(ext.w||3)*ts, eh=(ext.h||3)*ts, paid=ext.condition==='paid';
+    ctx.fillStyle=paid?'rgba(217,182,110,.14)':'rgba(193,233,129,.12)'; ctx.fillRect(x,y,ew,eh);
+    ctx.strokeStyle=paid?'#d9b66e':'#c1e981';ctx.lineWidth=2;ctx.setLineDash([6,3]);ctx.strokeRect(x,y,ew,eh);ctx.setLineDash([]);
+    const size=Math.min(ew,eh)*.8;
+    if(!drawAsset(ctx,paid?'world/beacon':'world/helipad',x+(ew-size)/2,y+(eh-size)/2,size,size)) {
+      ctx.fillStyle='#c9d8b8';ctx.font=`bold ${ts*.45}px monospace`;ctx.fillText(paid?'R':'H',x+ew/2-ts*.16,y+eh/2+ts*.16);
+    }
+    ctx.fillStyle='#c4cfb8';ctx.font=`${ts*.2}px monospace`;ctx.fillText(ext.name||'撤离点',x,y-5);
+  }
+
+  // Imported ground loot remains visible and keeps its original data.
+  for (const point of mapData.lootPoints) {
+    const x=point.x*ts,y=point.y*ts;
+    if(!drawAsset(ctx,point.type || 'box',x+ts*.16,y+ts*.16,ts*.68,ts*.68)) {
+      ctx.strokeStyle='#c3af78';ctx.strokeRect(x+ts*.26,y+ts*.26,ts*.48,ts*.48);
+    }
   }
 
   // Patrol nodes
@@ -467,6 +474,7 @@ document.getElementById('tileSize').value = mapData.tileSize;
 updateWorldSize();
 updateStats();
 render();
+loadGameAssets().then(render);
 </script>
 </body>
 </html>

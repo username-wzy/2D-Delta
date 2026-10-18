@@ -1,0 +1,98 @@
+{
+  "date": "2026-10-18",
+  "scope": "Generated PNG alpha, atlas boundaries, complete loot mapping, no-Emoji fallback; browser UX and gameplay verified separately.",
+  "atlases": [
+    {
+      "file": "inventory.png",
+      "size": [
+        1280,
+        1280
+      ],
+      "mode": "RGBA",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "cells": 16,
+      "allCellsHaveTransparentGutters": true,
+      "sha256": "268ac77b3ce9d01cc6de83754c3996f42bd92a17884832efa58c9464725b3928"
+    },
+    {
+      "file": "valuables.png",
+      "size": [
+        1280,
+        1280
+      ],
+      "mode": "RGBA",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "cells": 16,
+      "allCellsHaveTransparentGutters": true,
+      "sha256": "2c902637d73468aca47f32a83cb05517986448b48ba34c27d66217904c6e8445"
+    },
+    {
+      "file": "world.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "cells": 4,
+      "allCellsHaveTransparentGutters": true,
+      "sha256": "4b9a7467a74543138c670597afaedc80797fe43ffc3d71d81bc6a9f1d21c0ca6"
+    }
+  ],
+  "moduleChecks": {
+    "sprites": 73,
+    "sheets": 7,
+    "lootDefinitions": 51,
+    "shopProducts": 23,
+    "allLootMapped": true,
+    "shopMetadataMatches": true,
+    "noEmojiMarkup": true,
+    "noEmojiRenderer": true,
+    "unknownAssetHasSilhouette": true
+  },
+  "browserPreview": {
+    "title": "73 项资产已加载 / 7 张透明 PNG 图集",
+    "figures": 73,
+    "emojiText": false,
+    "sheets": [
+      {
+        "sheet": "inventory",
+        "ready": true,
+        "artDisplay": "block",
+        "fallbackDisplay": "none"
+      },
+      {
+        "sheet": "valuables",
+        "ready": true,
+        "artDisplay": "block",
+        "fallbackDisplay": "none"
+      },
+      {
+        "sheet": "world",
+        "ready": true,
+        "artDisplay": "block",
+        "fallbackDisplay": "none"
+      }
+    ],
+    "pageErrors": [],
+    "viewport": "1440x960",
+    "url": "http://127.0.0.1:5173/client/asset-preview.html"
+  },
+  "editor": {
+    "bodyHasEmoji": false,
+    "emojiCanvasCalls": [],
+    "ready": true,
+    "legacyMetadataRoundtrip": true,
+    "newExtractionOmitsEmoji": true,
+    "pageErrors": []
+  }
+}

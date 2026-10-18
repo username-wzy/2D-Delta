@@ -1,0 +1,782 @@
+{
+  "created": "2026-10-18",
+  "generator": "built-in image_gen",
+  "transparent_background": true,
+  "processing": "Alpha-preserving crop and deterministic equal-cell packing; no painted edits.",
+  "atlases": [
+    {
+      "file": "inventory.png",
+      "source": "sources/inventory.png",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "size": [
+        1280,
+        1280
+      ],
+      "columns": 4,
+      "rows": 4,
+      "sha256": "268ac77b3ce9d01cc6de83754c3996f42bd92a17884832efa58c9464725b3928",
+      "prompt": "Use case: stylized-concept. Asset type: transparent game inventory sprite atlas for 2D Delta, tactical extraction shooter. Produce ONE square transparent PNG atlas with EXACTLY 4 columns by 4 rows, sixteen equally sized cells; one distinct object per cell, strictly centered in its own cell with 18 percent clear transparent padding on each side and NO overlap into adjacent cells. High quality hand-painted tactical miniatures, crisp dark ink outlines, lightly worn detailed physical materials, muted olive/steel/tan palette with realistic accent colors, soft upper-left lighting, elevated three-quarter inventory view. Every object should read crisply at 64px. Actual alpha transparent background, no floor, no checkerboard baked in, no text, no labels, no grid lines, no borders, no watermark. EXACT row-major list: Row 1 cell1 a thick bundled stack of green banknotes secured by white paper band; cell2 one faceted brilliant blue diamond gemstone; cell3 a small closed olive military supply crate with reinforced metal corners; cell4 a neatly coiled chunky gold chain necklace. Row 2 cell1 a small black encrypted USB flash drive with exposed silver connector and red status LED; cell2 two brushed steel military identification dog tags on a thin ball chain; cell3 a gold wristwatch with black face and linked gold bracelet; cell4 a compact dual lens night vision goggle device with green lenses and black head mount. Row 3 exactly four armor repair kits increasing in sophistication left to right: improvised repair kit, ragged khaki roll pouch with duct tape and small wrench, tan cloth recognizable; standard repair kit, small rectangular olive metal toolkit with black handle and wrench symbol; precision repair kit, blue-gray fitted hard case opened slightly showing fine driver tools and precision pliers; advanced repair kit, large dark graphite reinforced maintenance case with orange latches and an exposed ceramic armor plate on top. Row 4 cell1 a green printed circuit board with black processor chips; cell2 a compact brushed silver internal hard disk with one blue connector; cell3 a small coil of copper electrical wire; cell4 a small purple scientific reagent bottle with amber glass and stopper. All subjects are completely isolated, centered, similar visual importance, legible silhouettes. Do not place extras outside objects.",
+      "repack": [
+        {
+          "sourceRect": [
+            0,
+            0,
+            322,
+            316
+          ],
+          "destRect": [
+            19,
+            45,
+            300,
+            274
+          ],
+          "subjectCrop": [
+            21,
+            61,
+            311,
+            297
+          ]
+        },
+        {
+          "sourceRect": [
+            322,
+            0,
+            625,
+            316
+          ],
+          "destRect": [
+            352,
+            49,
+            607,
+            270
+          ],
+          "subjectCrop": [
+            23,
+            68,
+            278,
+            289
+          ]
+        },
+        {
+          "sourceRect": [
+            625,
+            0,
+            939,
+            316
+          ],
+          "destRect": [
+            659,
+            33,
+            940,
+            286
+          ],
+          "subjectCrop": [
+            7,
+            48,
+            293,
+            305
+          ]
+        },
+        {
+          "sourceRect": [
+            939,
+            0,
+            1254,
+            316
+          ],
+          "destRect": [
+            979,
+            43,
+            1260,
+            276
+          ],
+          "subjectCrop": [
+            15,
+            61,
+            296,
+            294
+          ]
+        },
+        {
+          "sourceRect": [
+            0,
+            316,
+            327,
+            624
+          ],
+          "destRect": [
+            24,
+            379,
+            296,
+            581
+          ],
+          "subjectCrop": [
+            35,
+            51,
+            307,
+            253
+          ]
+        },
+        {
+          "sourceRect": [
+            327,
+            316,
+            630,
+            624
+          ],
+          "destRect": [
+            351,
+            359,
+            608,
+            601
+          ],
+          "subjectCrop": [
+            19,
+            27,
+            276,
+            269
+          ]
+        },
+        {
+          "sourceRect": [
+            630,
+            316,
+            934,
+            624
+          ],
+          "destRect": [
+            693,
+            339,
+            907,
+            620
+          ],
+          "subjectCrop": [
+            45,
+            8,
+            267,
+            300
+          ]
+        },
+        {
+          "sourceRect": [
+            934,
+            316,
+            1254,
+            624
+          ],
+          "destRect": [
+            979,
+            348,
+            1260,
+            612
+          ],
+          "subjectCrop": [
+            9,
+            9,
+            304,
+            286
+          ]
+        },
+        {
+          "sourceRect": [
+            0,
+            624,
+            322,
+            925
+          ],
+          "destRect": [
+            19,
+            682,
+            300,
+            918
+          ],
+          "subjectCrop": [
+            14,
+            18,
+            314,
+            270
+          ]
+        },
+        {
+          "sourceRect": [
+            322,
+            624,
+            627,
+            925
+          ],
+          "destRect": [
+            339,
+            689,
+            620,
+            911
+          ],
+          "subjectCrop": [
+            4,
+            37,
+            301,
+            272
+          ]
+        },
+        {
+          "sourceRect": [
+            627,
+            624,
+            936,
+            925
+          ],
+          "destRect": [
+            659,
+            660,
+            940,
+            939
+          ],
+          "subjectCrop": [
+            8,
+            10,
+            300,
+            300
+          ]
+        },
+        {
+          "sourceRect": [
+            936,
+            624,
+            1254,
+            925
+          ],
+          "destRect": [
+            979,
+            674,
+            1260,
+            926
+          ],
+          "subjectCrop": [
+            4,
+            15,
+            310,
+            289
+          ]
+        },
+        {
+          "sourceRect": [
+            0,
+            925,
+            323,
+            1254
+          ],
+          "destRect": [
+            19,
+            998,
+            300,
+            1241
+          ],
+          "subjectCrop": [
+            20,
+            27,
+            316,
+            283
+          ]
+        },
+        {
+          "sourceRect": [
+            323,
+            925,
+            627,
+            1254
+          ],
+          "destRect": [
+            339,
+            989,
+            620,
+            1251
+          ],
+          "subjectCrop": [
+            5,
+            14,
+            292,
+            282
+          ]
+        },
+        {
+          "sourceRect": [
+            627,
+            925,
+            940,
+            1254
+          ],
+          "destRect": [
+            669,
+            1003,
+            931,
+            1237
+          ],
+          "subjectCrop": [
+            27,
+            35,
+            289,
+            269
+          ]
+        },
+        {
+          "sourceRect": [
+            940,
+            925,
+            1254,
+            1254
+          ],
+          "destRect": [
+            1047,
+            980,
+            1193,
+            1260
+          ],
+          "subjectCrop": [
+            85,
+            8,
+            231,
+            288
+          ]
+        }
+      ]
+    },
+    {
+      "file": "valuables.png",
+      "source": "sources/valuables.png",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "size": [
+        1280,
+        1280
+      ],
+      "columns": 4,
+      "rows": 4,
+      "sha256": "2c902637d73468aca47f32a83cb05517986448b48ba34c27d66217904c6e8445",
+      "prompt": "Use case: stylized-concept. Asset type: transparent valuable loot sprite atlas for 2D Delta tactical extraction game. ONE square transparent PNG sprite atlas, EXACTLY 4 columns by 4 rows, sixteen independent centered objects in equal cells with generous 18 percent transparent margins and absolutely NO overlap across cells. Crisp dark ink outlines, premium hand-painted 3D game inventory miniatures, lightly worn physical materials, detailed at 128px and legible at 48px. Elevated three-quarter product view, soft upper left studio highlight, muted industrial tactical colors, modest gold/blue/purple accents where physically appropriate. Real alpha transparency, no background or floor, no baked checkerboard, no text or numbers, no labels, no gridlines, no borders, no logo/watermark. Strict row-major content: ROW1: cell1 a thick rectangular black military radio transceiver with antenna and knobs; cell2 a compact cylindrical silver high pressure pump motor with blue painted mount; cell3 a squat sealed yellow industrial battery with red and black terminals; cell4 a heavy red portable electric generator with tubular roll cage. ROW2: cell1 a reinforced dark gray desktop computer graphics card with two cooling fans and gold edge connector; cell2 a small silver white electronic CPU processor chip on dark green substrate; cell3 a compact black handheld spectrum analyzer with small blue screen and single telescopic antenna; cell4 an olive rectangular rugged military laptop, open with unmarked blue display. ROW3: cell1 a tall oxygen cylinder with green top regulator and blue steel bottle; cell2 a small red and white canister of industrial sealant with narrow spout; cell3 a dark metal adjustable wrench, diagonal but entirely within its cell; cell4 a little sealed paper stack of confidential intelligence documents bound by red ribbon, no readable writing. ROW4: cell1 a small polished gold ingot, simple clean top surface; cell2 a polished amber statuette of an abstract bird on a dark stone plinth; cell3 a professional black DSLR camera with a large glass lens; cell4 a large beige industrial microscope with twin eyepieces and blue lens controls. Every item a single complete isolated silhouette; no unattached ornaments or extra object groups. Nothing touches cell boundaries.",
+      "repack": [
+        {
+          "sourceRect": [
+            0,
+            0,
+            322,
+            305
+          ],
+          "destRect": [
+            39,
+            19,
+            281,
+            300
+          ],
+          "subjectCrop": [
+            37,
+            8,
+            293,
+            305
+          ]
+        },
+        {
+          "sourceRect": [
+            322,
+            0,
+            625,
+            305
+          ],
+          "destRect": [
+            339,
+            52,
+            620,
+            268
+          ],
+          "subjectCrop": [
+            5,
+            73,
+            289,
+            291
+          ]
+        },
+        {
+          "sourceRect": [
+            625,
+            0,
+            939,
+            291
+          ],
+          "destRect": [
+            673,
+            46,
+            926,
+            273
+          ],
+          "subjectCrop": [
+            16,
+            64,
+            269,
+            291
+          ]
+        },
+        {
+          "sourceRect": [
+            939,
+            0,
+            1254,
+            305
+          ],
+          "destRect": [
+            979,
+            35,
+            1260,
+            284
+          ],
+          "subjectCrop": [
+            0,
+            40,
+            290,
+            297
+          ]
+        },
+        {
+          "sourceRect": [
+            0,
+            320,
+            322,
+            620
+          ],
+          "destRect": [
+            19,
+            358,
+            300,
+            602
+          ],
+          "subjectCrop": [
+            16,
+            28,
+            321,
+            293
+          ]
+        },
+        {
+          "sourceRect": [
+            322,
+            320,
+            625,
+            620
+          ],
+          "destRect": [
+            351,
+            369,
+            609,
+            591
+          ],
+          "subjectCrop": [
+            30,
+            38,
+            288,
+            260
+          ]
+        },
+        {
+          "sourceRect": [
+            625,
+            291,
+            939,
+            620
+          ],
+          "destRect": [
+            739,
+            339,
+            860,
+            620
+          ],
+          "subjectCrop": [
+            82,
+            7,
+            221,
+            329
+          ]
+        },
+        {
+          "sourceRect": [
+            939,
+            310,
+            1254,
+            620
+          ],
+          "destRect": [
+            979,
+            342,
+            1260,
+            617
+          ],
+          "subjectCrop": [
+            0,
+            9,
+            298,
+            301
+          ]
+        },
+        {
+          "sourceRect": [
+            0,
+            620,
+            322,
+            925
+          ],
+          "destRect": [
+            100,
+            659,
+            220,
+            940
+          ],
+          "subjectCrop": [
+            107,
+            0,
+            236,
+            301
+          ]
+        },
+        {
+          "sourceRect": [
+            322,
+            620,
+            625,
+            925
+          ],
+          "destRect": [
+            427,
+            659,
+            532,
+            940
+          ],
+          "subjectCrop": [
+            93,
+            0,
+            205,
+            299
+          ]
+        },
+        {
+          "sourceRect": [
+            625,
+            620,
+            939,
+            925
+          ],
+          "destRect": [
+            659,
+            673,
+            940,
+            927
+          ],
+          "subjectCrop": [
+            2,
+            23,
+            291,
+            284
+          ]
+        },
+        {
+          "sourceRect": [
+            939,
+            620,
+            1254,
+            880
+          ],
+          "destRect": [
+            979,
+            695,
+            1260,
+            904
+          ],
+          "subjectCrop": [
+            0,
+            38,
+            295,
+            257
+          ]
+        },
+        {
+          "sourceRect": [
+            0,
+            925,
+            322,
+            1254
+          ],
+          "destRect": [
+            19,
+            1022,
+            300,
+            1217
+          ],
+          "subjectCrop": [
+            31,
+            62,
+            318,
+            261
+          ]
+        },
+        {
+          "sourceRect": [
+            322,
+            925,
+            625,
+            1254
+          ],
+          "destRect": [
+            390,
+            979,
+            569,
+            1260
+          ],
+          "subjectCrop": [
+            65,
+            7,
+            252,
+            300
+          ]
+        },
+        {
+          "sourceRect": [
+            625,
+            925,
+            939,
+            1254
+          ],
+          "destRect": [
+            659,
+            1000,
+            940,
+            1240
+          ],
+          "subjectCrop": [
+            0,
+            23,
+            300,
+            279
+          ]
+        },
+        {
+          "sourceRect": [
+            939,
+            880,
+            1254,
+            1254
+          ],
+          "destRect": [
+            1015,
+            979,
+            1224,
+            1260
+          ],
+          "subjectCrop": [
+            29,
+            4,
+            285,
+            348
+          ]
+        }
+      ]
+    },
+    {
+      "file": "world.png",
+      "source": "sources/world.png",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "size": [
+        1024,
+        1024
+      ],
+      "columns": 2,
+      "rows": 2,
+      "sha256": "4b9a7467a74543138c670597afaedc80797fe43ffc3d71d81bc6a9f1d21c0ca6",
+      "prompt": "Use case: stylized-concept. Asset type: transparent top-down environment sprite atlas for 2D Delta tactical extraction game. One square transparent PNG, EXACTLY two columns and two rows, four equal square cells. Each object wholly centered inside its own cell with at least 20 percent empty transparent margin on all sides, generous gutters, no overlap. Consistent premium hand-painted game miniature treatment, crisp dark contours, natural muted olive/masonry palette and lightly worn details, soft upper left lighting, camera slightly elevated but as close to straight overhead as practical for small top-down game map. Actual alpha transparent background, no checkerboard, no canvas background, no panels, no grid lines, no captions, no text, no logos, no watermark. Strict row-major: top left a compact square segment of a ruined dark gray industrial masonry barrier, thick stone and concrete blocks with a few rusted metal straps, square footprint clearly blocks movement; top right one compact green pine tree with dark foliage, viewed from elevated overhead so round triangular canopy occupies the square cell and short brown trunk near bottom. Bottom left an empty steel gray square helicopter landing pad made of reinforced panels, faded off-white H landing marking, four little amber corner lights; no helicopter, no people. Bottom right one compact olive portable extraction radio beacon tower with an angular tripod, amber signal lamp, short antenna and small solar panel. Every silhouette isolated transparent. Scale each object independently to comfortably fit its cell. No ground plane, no shadows outside each subject.",
+      "repack": [
+        {
+          "sourceRect": [
+            0,
+            0,
+            627,
+            600
+          ],
+          "destRect": [
+            31,
+            31,
+            480,
+            481
+          ],
+          "subjectCrop": [
+            97,
+            81,
+            593,
+            578
+          ]
+        },
+        {
+          "sourceRect": [
+            627,
+            0,
+            1254,
+            600
+          ],
+          "destRect": [
+            561,
+            31,
+            974,
+            481
+          ],
+          "subjectCrop": [
+            92,
+            59,
+            567,
+            576
+          ]
+        },
+        {
+          "sourceRect": [
+            0,
+            600,
+            627,
+            1254
+          ],
+          "destRect": [
+            31,
+            553,
+            481,
+            982
+          ],
+          "subjectCrop": [
+            85,
+            63,
+            607,
+            561
+          ]
+        },
+        {
+          "sourceRect": [
+            627,
+            600,
+            1254,
+            1254
+          ],
+          "destRect": [
+            603,
+            543,
+            932,
+            993
+          ],
+          "subjectCrop": [
+            137,
+            21,
+            536,
+            567
+          ]
+        }
+      ]
+    }
+  ]
+}

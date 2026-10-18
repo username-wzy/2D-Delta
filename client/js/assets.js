@@ -1,5 +1,5 @@
 // Shared sprite atlas lookup for Canvas, lobby, inventory and the asset preview.
-// Existing IDs and Emoji stay in save files; graphics are resolved at display time.
+// Stable IDs resolve generated graphics; legacy visual fields are never rendered.
 const assetBase = typeof import.meta.url === 'string'
   ? new URL('../assets/', import.meta.url).href : 'assets/';
 
@@ -8,6 +8,9 @@ export const atlasDefinitions = Object.freeze({
   enemies: { src: `${assetBase}enemies.png`, columns: 4, rows: 2, width: 1774, height: 887 },
   weapons: { src: `${assetBase}weapons.png`, columns: 2, rows: 4, width: 1254, height: 1254 },
   equipment: { src: `${assetBase}equipment.png`, columns: 4, rows: 4, width: 1254, height: 1254 },
+  inventory: { src: `${assetBase}inventory.png`, columns: 4, rows: 4, width: 1280, height: 1280 },
+  valuables: { src: `${assetBase}valuables.png`, columns: 4, rows: 4, width: 1280, height: 1280 },
+  world: { src: `${assetBase}world.png`, columns: 2, rows: 2, width: 1024, height: 1024 },
 });
 
 const sprites = new Map();
@@ -64,11 +67,29 @@ register('equipment', [
   ['filing_cabinet', '文件柜'], ['wardrobe', '衣柜'],
 ]);
 
+
+register('inventory', [
+  ['cash', '大捆现金'], ['gem', '高价值蓝钻'], ['box', '军用物资箱'], ['gold_chain', '金项链'],
+  ['flash_drive', '加密U盘'], ['dogtag', '特工身份牌'], ['gold_watch', '高级金表'], ['night_vision', '夜视仪'],
+  ['repair_improvised', '自制维修包', '+40'], ['repair_standard', '标准维修包', '+80'],
+  ['repair_precision', '精密维修包', '+120'], ['repair_advanced', '高级维修包', '+180'],
+  ['circuit_board', '精密电路板'], ['hard_drive', '数据硬盘'], ['copper_wire', '铜线线圈'], ['reagent', '科研试剂'],
+]);
+register('valuables', [
+  ['radio_transceiver', '军用无线电'], ['motor_pump', '高压泵电机'], ['industrial_battery', '工业蓄电池'], ['portable_generator', '便携发电机'],
+  ['graphics_card', '高性能显卡'], ['cpu', '处理器芯片'], ['spectrum_analyzer', '频谱分析仪'], ['military_laptop', '军用加固电脑'],
+  ['oxygen_cylinder', '医用氧气瓶'], ['sealant', '工业密封胶'], ['wrench', '活动扳手'], ['intelligence_docs', '机密情报文件'],
+  ['gold_bar', '投资金条'], ['amber_statuette', '琥珀雕像'], ['camera', '专业数码相机'], ['microscope', '实验室显微镜'],
+]);
+register('world', [
+  ['wall', '工业墙体'], ['tree', '松树'], ['helipad', '撤离停机坪'], ['beacon', '撤离信标'],
+], 'world/');
+
 const images = new Map();
 const states = new Map();
 let loading;
 
-/** Images load independently of gameplay. A failed sheet keeps its Emoji fallback. */
+/** Images load independently of gameplay. A failed sheet uses a neutral line silhouette. */
 export function loadGameAssets() {
   if (loading) return loading;
   if (typeof Image === 'undefined') return Promise.resolve([]);
@@ -117,11 +138,16 @@ function escapeHTML(value) {
   }[char]));
 }
 
+/** Neutral line silhouette also works while a sheet is unavailable. */
+function placeholderMarkup() {
+  return '<svg class="asset-placeholder" viewBox="0 0 48 48" width="100%" height="100%" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 15 24 7l15 8v19l-15 8-15-8V15Zm0 0 15 8 15-8M24 23v19M16 11l15 8v9"/><path d="m15 30 4 2m-4 2 4 2"/></svg>';
+}
+
 /** CSS samples a cell directly from the same original PNG used by Canvas. */
-export function assetMarkup(subject, { kind = 'item', fallback, label } = {}) {
+export function assetMarkup(subject, { kind = 'item', label } = {}) {
   const asset = getAsset(subject, kind);
-  const emoji = fallback ?? (typeof subject === 'object' ? subject?.emoji : '') ?? '';
-  if (!asset) return escapeHTML(emoji || '📦');
+  const fallback = placeholderMarkup();
+  if (!asset) return `<span class="asset-icon asset-generic" role="img" aria-label="${escapeHTML(label || (typeof subject === 'object' ? subject?.name : '') || '未识别物品')}"><span class="asset-fallback" aria-hidden="true">${fallback}</span></span>`;
   const frame = asset.frame;
   const x = frame.width < 1 ? frame.x / (1 - frame.width) * 100 : 0;
   const y = frame.height < 1 ? frame.y / (1 - frame.height) * 100 : 0;
@@ -129,21 +155,20 @@ export function assetMarkup(subject, { kind = 'item', fallback, label } = {}) {
   const slotRatio = asset.sheet === 'weapons' ? 2 : 1;
   const contentWidth = Math.min(1, ratio / slotRatio) * 100;
   const contentHeight = Math.min(1, slotRatio / ratio) * 100;
-  return `<span class="asset-icon asset-${asset.sheet}" data-asset="${asset.key}" role="img" aria-label="${escapeHTML(label || asset.label)}" style="--atlas:url('${asset.src}');--atlas-size:${100 / frame.width}% ${100 / frame.height}%;--atlas-position:${x}% ${y}%;--asset-width:${contentWidth}%;--asset-height:${contentHeight}%"><span class="asset-art" aria-hidden="true"></span><span class="asset-fallback" aria-hidden="true">${escapeHTML(emoji || '📦')}</span>${asset.tag ? `<span class="asset-tag" aria-hidden="true">${asset.tag}</span>` : ''}</span>`;
+  return `<span class="asset-icon asset-${asset.sheet}" data-asset="${asset.key}" role="img" aria-label="${escapeHTML(label || asset.label)}" style="--atlas:url('${asset.src}');--atlas-size:${100 / frame.width}% ${100 / frame.height}%;--atlas-position:${x}% ${y}%;--asset-width:${contentWidth}%;--asset-height:${contentHeight}%"><span class="asset-art" aria-hidden="true"></span><span class="asset-fallback" aria-hidden="true">${fallback}</span>${asset.tag ? `<span class="asset-tag" aria-hidden="true">${asset.tag}</span>` : ''}</span>`;
 }
 
 /** HUD calls this every frame; only a changed icon rewrites its DOM. */
 export function setAssetIcon(element, subject, options = {}) {
   if (!element) return;
   const asset = getAsset(subject, options.kind);
-  const fallback = options.fallback ?? subject?.emoji ?? '📦';
-  const signature = `${asset?.key || ''}|${fallback}|${options.label || ''}`;
+  const signature = `${asset?.key || ''}|${options.label || ''}|${typeof subject === 'object' ? subject?.name || '' : ''}`;
   if (element.dataset.assetSignature === signature) return;
   element.dataset.assetSignature = signature;
-  element.innerHTML = assetMarkup(subject, { ...options, fallback });
+  element.innerHTML = assetMarkup(subject, options);
 }
 
-/** Returns false while unavailable, allowing the caller to draw the original Emoji. */
+/** Returns false while unavailable, allowing a neutral geometry fallback. */
 export function drawAsset(ctx, subject, x, y, width, height, kind = 'item') {
   const asset = getAsset(subject, kind);
   const image = asset && images.get(asset.sheet);
