@@ -15,7 +15,7 @@ npm ci
 npm run dev
 ```
 
-打开终端显示的本机地址，默认是 **http://127.0.0.1:5173/client/**。点击“进入作战准备”，选择特工后即可部署；也可以先去军需采购，再到装备仓库携带物品。空装出发使用特工的基础武器。
+也可在 [GitHub Pages 在线体验](https://username-wzy.github.io/2D-Delta/)打开（发布完成后生效）。本地打开终端显示的地址，默认是 **http://127.0.0.1:5173/client/**。点击“进入作战准备”，选择特工后即可部署；也可以先去军需采购，再到装备仓库携带物品。空装出发使用特工的基础武器。
 
 游戏使用原生 JavaScript、Canvas 2D 和 ES Modules，运行时不依赖框架、数据库或 .NET。请通过 HTTP 打开页面，以便读取地图和配置。
 
@@ -88,6 +88,7 @@ npm run test:browser
 - [体力与移动规则](docs/mvp/movement.md)
 - [简化战斗规则](docs/mvp/combat.md)
 - [图像资产来源、映射与生成提示](client/assets/README.md)
+- [GitHub Pages 发布流程](docs/deployment/pages.md)
 - [独立仓库初始化记录](docs/initialization/README.md)
 - [历史资料说明](docs/HISTORY.md)
 
