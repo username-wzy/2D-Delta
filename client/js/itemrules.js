@@ -1,5 +1,6 @@
 // Shared item rules for the lobby, deployment and every pickup path.
 import { getLootDef } from './lootdata.js';
+import { packItems } from './inventory.js';
 
 export function itemId(item) { return item.type || item.id; }
 
@@ -11,6 +12,7 @@ export function itemCategory(item) {
   if (id.startsWith('ammo_')) return 'ammo';
   if (id.startsWith('keycard_')) return 'key';
   if (['medkit', 'medkit_large', 'injector'].includes(id)) return 'medicine';
+  if (id.startsWith('repair_')) return 'repair';
   if (id === 'grenade') return 'grenade';
   return 'valuable';
 }
@@ -37,7 +39,7 @@ export function equipmentError(item, equipped) {
 }
 
 export function loadoutCapacity(baseSlots, equipped) {
-  return baseSlots + (equipped.some(e => itemCategory(e) === 'backpack') ? 4 : 0);
+  return baseSlots + (equipped.some(e => itemCategory(e) === 'backpack') ? 12 : 0);
 }
 
 export function medicineHealing(item) {
@@ -45,3 +47,16 @@ export function medicineHealing(item) {
   const match = /^heal_(\d+)$/.exec(effect || '');
   return match ? Number(match[1]) : 0;
 }
+
+export const BAG_COLUMNS = 6;
+export function loadoutGridError(baseCells, equipped) {
+  const carried = equipped.filter(item => !isGear(item) && itemCategory(item) !== 'ammo');
+  const capacity = loadoutCapacity(baseCells, equipped);
+  return packItems(carried, BAG_COLUMNS, Math.floor(capacity / BAG_COLUMNS), {allowRotation:true}).ok ? '' : '背包格位不足，请调整物品尺寸或卸下物品';
+}
+export function armorSpec(item) {
+  const def = getLootDef(itemId(item));
+  const heavy = itemId(item) === 'armor_heavy';
+  return {maxDurability:def.maxDurability ?? (heavy ? 220 : 120), armorClass:def.armorClass ?? (heavy ? 5 : 2)};
+}
+export function repairValue(item) { return item.repairAmount ?? getLootDef(itemId(item)).repairAmount ?? 0; }

@@ -8,12 +8,13 @@ global.localStorage = {
   setItem(key,value) { attempts++; if (fail || attempts === failAt) throw new Error('QuotaExceededError'); storage.set(key,value); writes++; },
   removeItem: key => storage.delete(key)
 };
-global.fetch = async () => ({ ok: true, json: async () => JSON.parse(fs.readFileSync(path.join(__dirname,'../client/data/shop.json'),'utf8')) });
+global.fetch = async file => ({ ok: true, json: async () => JSON.parse(fs.readFileSync(path.join(__dirname,'../client/data/',String(file).includes('loot') ? 'loot.json' : 'shop.json'),'utf8')) });
 test.before(async () => {
   economy = await import('../client/js/economy.js');
   shop = await import('../client/js/shopdata.js');
   settings = await import('../client/js/settings.js');
   await shop.loadShopData();
+  await (await import('../client/js/lootdata.js')).loadLootData();
 });
 test.beforeEach(() => {
   storage = new Map(); fail = false; failAt = -1; attempts = writes = 0;
@@ -119,4 +120,41 @@ test('settings only apply after their write succeeds', () => {
   assert.equal(settings.getSettings().sound,true); fail=false;
   settings.setSettings({sound:false,screenShake:false}); assert.equal(settings.getSettings().sound,false);
   assert.equal(JSON.parse(storage.get('2d-delta-settings')).screenShake,false);
+});
+
+test('raid reservation keeps zero magazines, damaged armor and instance metadata without sharing nested state', () => {
+  economy.setMaxEquipSlots(24);
+  economy.addToStash({...item('weapon_m4'),instanceId:'gun-zero',weaponState:{currentAmmo:0,cooldown:0.5},gridW:2,gridH:4,rotated:true});
+  economy.addToStash({...item('armor_heavy'),instanceId:'armor-broken',durability:0,maxDurability:220});
+  economy.equipItems([0,1]); const reserved=economy.beginRaid('metadata');
+  const gun=reserved.find(i=>i.id==='weapon_m4');
+  assert.equal(gun.weaponState.currentAmmo,0);assert.equal(gun.rotated,true);
+  gun.weaponState.currentAmmo=30;
+  assert.equal(economy.getProfile().activeRaid.equipped.find(i=>i.id==='weapon_m4').weaponState.currentAmmo,0);
+  assert.equal(disk().activeRaid.equipped.find(i=>i.id==='armor_heavy').durability,0);
+});
+test('protection validates rectangle geometry and accepts repair kits within 2x2 cells', () => {
+  economy.beginRaid('shape');
+  assert.throws(()=>economy.updateSecureInventory('shape',[{...item('gold_bar'),gridW:3,gridH:1}]),/2×2/);
+  assert.equal(economy.getProfile().activeRaid.secureInventory.length,0);
+  economy.updateSecureInventory('shape',[item('repair_standard')]);
+  assert.equal(disk().activeRaid.secureInventory[0].id,'repair_standard');
+  assert.throws(()=>economy.updateSecureInventory('shape',[item('repair_standard'),item('gem')]),/2×2/);
+  economy.loadProfile();assert.equal(economy.getStash()[0].id,'repair_standard');
+});
+test('a failed protected-item write preserves both layout and persisted inventory for retry', () => {
+  economy.beginRaid('secure-atomic');economy.updateSecureInventory('secure-atomic',[{...item('repair_improvised'),gridX:0,gridY:0,rotated:false}]);
+  const before=storage.get(economy.STORAGE_KEY);fail=true;
+  assert.throws(()=>economy.updateSecureInventory('secure-atomic',[{...item('repair_improvised'),gridX:0,gridY:1,rotated:true}]),/保存失败/);
+  assert.equal(storage.get(economy.STORAGE_KEY),before);assert.equal(economy.getProfile().activeRaid.secureInventory[0].rotated,false);
+});
+test('newly worn extracted gear is counted once with magazine and durability and never duplicated in stash', () => {
+  economy.beginRaid('found-gear');
+  const gear=[{type:'weapon_mp5',id:'instance-gun',instanceId:'instance-gun',name:'MP5',value:6000,weaponState:{currentAmmo:3,cooldown:0.25}},
+    {type:'armor_light',id:'instance-armor',instanceId:'instance-armor',name:'damaged',value:3000,durability:7,maxDurability:120}];
+  economy.settleRaid('found-gear',true,gear,[]);
+  assert.equal(economy.getStash().length,0);assert.equal(economy.getEquipped().length,2);
+  assert.equal(economy.getEquipped()[0].weaponState.currentAmmo,3);assert.equal(economy.getEquipped()[1].durability,7);
+  assert.equal(economy.getProfile().stats.bestHaul,9000);
+  assert.equal(economy.settleRaid('found-gear',true,gear,[]),false);
 });

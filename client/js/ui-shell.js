@@ -3,12 +3,21 @@ import { getCoins, getEquipped, getLoadoutError, resetProfile } from './economy.
 import { getSettings, setSettings } from './settings.js';
 import { getOperatorDef, defaultOperator } from './operatordata.js';
 import { setAssetIcon, assetMarkup } from './assets.js';
+import { iconMarkup } from './icons.js';
 
 const byId = id => document.getElementById(id);
+document.querySelectorAll('[data-ui-icon]').forEach(element => { element.innerHTML = iconMarkup(element.dataset.uiIcon); });
 let initialized = false;
 let currentFilter = 'all';
 let callbacks = {};
 let confirmationPending = false;
+let navigationToken = 0;
+let deploymentToken = 0;
+const motionEnabled = () => !getSettings().reducedMotion && !globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+function animateArrival(element) {
+  if (!element || !motionEnabled() || typeof element.animate !== 'function') return;
+  element.animate([{ opacity: 0, transform: 'translateY(9px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 220, easing: 'cubic-bezier(.2,.8,.2,1)' });
+}
 
 function safeText(id, value) { const element = byId(id); if (element) element.textContent = value; }
 function showDialog(id) {
@@ -83,30 +92,77 @@ export function setLobbyView(view, focus = true) {
   const scroller = screen.querySelector('.lobby-body');
   if (scroller) scroller.scrollTop = 0;
   callbacks.refresh?.();
+  animateArrival(byId(`view-${view}`));
   if (focus) {
     const heading = byId(`view-${view}`)?.querySelector('h1');
     if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }); }
   }
 }
-export function showHomeScreen() {
-  closeShellDialogs();
-  byId('start-screen')?.classList.add('hidden');
+function navigateScreen(targetId, focusId) {
+  const token = ++navigationToken;
+  const target = byId(targetId);
+  const wasHidden = target?.classList.contains('hidden');
+  const screens = ['home-screen', 'start-screen'].map(byId).filter(Boolean);
+  for (const screen of screens) {
+    screen.getAnimations?.().forEach(animation => animation.cancel());
+    if (screen === target) continue;
+    screen.inert = true; screen.style.pointerEvents = 'none';
+    if (!screen.classList.contains('hidden') && motionEnabled() && typeof screen.animate === 'function') {
+      const animation = screen.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: 'ease-out' });
+      animation.finished.catch(() => {}).then(() => {
+        if (token === navigationToken && screen !== byId(targetId)) screen.classList.add('hidden');
+        screen.style.pointerEvents = '';
+      });
+    } else { screen.classList.add('hidden'); screen.style.pointerEvents = ''; }
+  }
+  if (target) { target.inert = false; target.style.pointerEvents = ''; target.classList.remove('hidden'); if (wasHidden) animateArrival(target); }
   byId('hud')?.classList.add('hidden');
-  byId('home-screen')?.classList.remove('hidden');
-  byId('enter-lobby-btn')?.focus({ preventScroll: true });
+  byId(focusId)?.focus({ preventScroll: true });
+}
+export function hideShellScreens() {
+  navigationToken++;
+  for (const id of ['home-screen', 'start-screen']) {
+    const screen = byId(id); if (!screen) continue;
+    screen.classList.add('hidden'); screen.inert = true; screen.style.pointerEvents = '';
+    screen.getAnimations?.().forEach(animation => animation.cancel());
+  }
+}
+export function showHomeScreen() {
+  closeShellDialogs(); navigateScreen('home-screen', 'enter-lobby-btn');
 }
 export function showLobbyShell() {
-  byId('home-screen')?.classList.add('hidden');
-  byId('start-screen')?.classList.remove('hidden');
-  byId('hud')?.classList.add('hidden');
+  navigateScreen('start-screen');
   setLobbyView('operations', false);
+}
+export function beginDeployment() {
+  deploymentToken++;
+  const overlay = byId('deployment-transition');
+  if (!overlay) return;
+  overlay.getAnimations?.().forEach(animation => animation.cancel());
+  overlay.style.pointerEvents = 'auto'; overlay.classList.remove('hidden');
+  const map = byId('deployment-map-name')?.textContent || '行动战区';
+  safeText('transition-map', map);
+  safeText('transition-status', '正在装载地图、核验装备与撤离路线…');
+  byId('start-screen')?.setAttribute('aria-busy', 'true');
+}
+export function endDeployment() {
+  const token = deploymentToken;
+  const overlay = byId('deployment-transition');
+  byId('start-screen')?.removeAttribute('aria-busy');
+  if (!overlay) return;
+  // Release input immediately; the optional fade never leaves an invisible blocker.
+  overlay.style.pointerEvents = 'none';
+  if (motionEnabled() && typeof overlay.animate === 'function') {
+    const animation = overlay.animate([{ opacity: 1 }, { opacity: 0 }], {duration: 200, easing:'ease-out'});
+    animation.finished.catch(() => {}).then(() => { if (token === deploymentToken) overlay.classList.add('hidden'); });
+  } else overlay.classList.add('hidden');
 }
 function syncOperatorStage() {
   const selected = byId('operator-cards')?.querySelector('.op-card.selected');
   const assetKey = selected?.querySelector('[data-asset]')?.dataset.asset;
   const id = selected?.dataset.operatorId || assetKey?.replace('operator/', '') || defaultOperator().id;
   const operator = getOperatorDef(id);
-  setAssetIcon(byId('selected-operator-art'), operator, { kind: 'operator' });
+  setAssetIcon(byId('selected-operator-art'), operator, { kind: 'operator', fallback: '' });
   safeText('selected-operator-name', operator.name);
   safeText('selected-operator-desc', operator.description || '保持警惕，完成撤离。');
   safeText('selected-operator-code', operator.id.toUpperCase());
@@ -131,7 +187,7 @@ export function refreshShell() {
     for (const item of equipped.slice(0, 8)) {
       const slot = document.createElement('span');
       slot.className = 'quick-item'; slot.title = item.name || '携带物品';
-      slot.innerHTML = assetMarkup(item); quick.appendChild(slot);
+      slot.innerHTML = assetMarkup(item, { fallback: '' }); quick.appendChild(slot);
     }
   }
   syncOperatorStage(); syncMap();
@@ -150,7 +206,7 @@ export function initShell(options) {
       const active = filter === button;
       filter.classList.toggle('active', active); filter.setAttribute('aria-pressed', String(active));
     });
-    safeText('shop-category-title', button.textContent.replace('↗', '').trim());
+    safeText('shop-category-title', button.textContent.replace('→', '').trim());
     callbacks.refreshShop?.();
   }));
   byId('map-select')?.addEventListener('change', syncMap);
@@ -165,8 +221,8 @@ export function initShell(options) {
     if (cards) observer.observe(cards, { childList: true, attributes: true, attributeFilter: ['class'], subtree: true });
     if (byId('map-select')) new MutationObserver(syncMap).observe(byId('map-select'), { childList: true });
   }
-  setAssetIcon(byId('home-operator'), getOperatorDef('tactical'), { kind: 'operator' });
-  setAssetIcon(byId('home-operator-back'), getOperatorDef('heavy'), { kind: 'operator' });
+  setAssetIcon(byId('home-operator'), getOperatorDef('tactical'), { kind: 'operator', fallback: '' });
+  setAssetIcon(byId('home-operator-back'), getOperatorDef('heavy'), { kind: 'operator', fallback: '' });
   safeText('boot-status', '行动配置已就绪 · 本地进度自动保存');
   byId('boot-status')?.classList.remove('error');
   if (byId('enter-lobby-btn')) byId('enter-lobby-btn').disabled = false;

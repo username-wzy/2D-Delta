@@ -25,12 +25,18 @@ for (const op of datasets.operators) {
   assert.equal(op.maxHp,100); assert.equal(op.maxArmor,0); assert.equal(op.armorClass,0);
 }
 for (const weapon of datasets.weapons) assert(Number.isFinite(weapon.range) && weapon.range > 0, weapon.id + ': range');
-for (const item of datasets.loot) assert(Number.isInteger(item.rarity) && item.rarity >= 1 && item.rarity <= 6, item.id + ': rarity');
+for (const item of [...datasets.loot,...datasets.shop]) {
+  assert(Number.isInteger(item.rarity) && item.rarity >= 1 && item.rarity <= 6, item.id + ': rarity');
+  for (const key of ['gridW','gridH']) assert(Number.isInteger(item[key]) && item[key] >= 1 && item[key] <= 6, item.id + ': ' + key);
+}
+for (const item of datasets.loot.filter(row => row.category === 'repair')) {
+  assert(item.repairAmount > 0 && item.useTime > 0, item.id + ': repair parameters');
+}
 assert(!fs.readFileSync(path.join(root,'client/index.html'),'utf8').includes('type="password"'));
 assert(!fs.readFileSync(path.join(root,'client/js/main.js'),'utf8').includes('showLoginScreen'));
 for (const item of datasets.shop.filter(row => row.category === 'weapon')) assert(weapons.has(item.id), item.id);
 for (const file of fs.readdirSync(path.join(root, 'client/maps')).filter(file => file.endsWith('.json'))) readJSON('client/maps/' + file);
-for (const name of ['operators','enemies','weapons','equipment']) {
+for (const name of ['operators','enemies','weapons','equipment','inventory','valuables','world']) {
   const png = fs.readFileSync(path.join(root, 'client/assets/' + name + '.png'));
   assert.equal(png.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', name + ': PNG signature');
   assert(png.readUInt32BE(16) > 0 && png.readUInt32BE(20) > 0, name + ': dimensions');
@@ -47,4 +53,4 @@ for (const file of ['README.md','ROADMAP.md','AGENT.md','client/assets/README.md
   }
 }
 assert.equal(readJSON('package.json').private, true, 'prevent accidental npm publishing');
-console.log('Checked ' + scripts.length + ' JavaScript files, 5 config sets, map JSON, 4 RGBA atlases and ' + links + ' document links.');
+console.log('Checked ' + scripts.length + ' JavaScript files, 5 config sets, map JSON, 7 RGBA atlases and ' + links + ' document links.');

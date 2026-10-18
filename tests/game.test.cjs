@@ -25,7 +25,7 @@ function surface(base = {}) {
 }
 function element(id = '') {
   const classes = new Set(['hidden']);
-  const el = surface({id, tagName: 'DIV', style: {}, dataset: {}, children: [],
+  const el = surface({id, tagName: 'DIV', style: {setProperty(name,value){this[name]=value;}}, dataset: {}, children: [],
     value: id === 'map-select' ? 'maps/factory_01.json' : '', width: 1280, height: 720,
     disabled: false, className: '', innerText: '', textContent: '',
     classList: {add: x => classes.add(x), remove: x => classes.delete(x), contains: x => classes.has(x),
@@ -49,7 +49,7 @@ function getElement(id) { if (!elements.has(id)) elements.set(id, element(id)); 
 const document = surface({getElementById: getElement, createElement: () => element(), hidden: false, documentElement: element(), querySelectorAll: () => [], querySelector: () => null});
 const window = surface({innerWidth: 1280, innerHeight: 720});
 const context = vm.createContext({console, Math, Date, performance: {now: () => 0},
-  queueMicrotask, location: { reload() {} },
+  matchMedia: () => ({matches:true}), queueMicrotask, location: { reload() {} },
   setTimeout: fn => {timers.push(fn); return timers.length;}, requestAnimationFrame: () => 0,
   confirm: () => true, localStorage: {getItem: key => storage.get(key) ?? null,
     setItem(key, value) { if (storageFails) throw new Error('QuotaExceededError'); storage.set(key, value); },
@@ -76,7 +76,7 @@ function moduleFor(file) {
     let source = fs.readFileSync(file, 'utf8');
     if (basename === 'main.js') source += `
       export const regression = {
-        initWorld, finishRaid, update, interactTarget, useMedkit, throwGrenade, fireWeapon, secureLoot, togglePause,
+        initWorld, finishRaid, update, interactTarget, useMedkit, throwGrenade, fireWeapon, secureLoot, togglePause, equipRaidItem, unequipRaidItem, useRepair, rotateInventoryItem, organizeInventory,
         get grenades() {return grenades}, get isPaused() {return isPaused},
         reloadWeapon, switchWeapon, giveLoot, newLoot, pickNearbyItem,
         refreshNearbyPanel, showContainerLoot, pickFromContainer, takeAllFromContainer,
@@ -201,7 +201,7 @@ async function check(id, action) {
     await raid('heavy'); api.player.hp=1; const med=ground('medkit'); api.interactTarget();
     assert.equal(api.player.hp,1); assert.equal(api.player.medkitCount,1);
     hud.refreshInventoryGrid(api.player);
-    getElement('loot-grid').children[0].children.find(x=>x.textContent==='使用').dispatchEvent({type:'click',stopPropagation(){}});
+    document.dispatchEvent({type:'use-medicine',detail:med.id});
     step(3.1); assert.equal(api.player.hp,51); assert(!api.player.inventory.includes(med));
   });
   await check('B05: picked grenade becomes usable and is consumed', async () => {
@@ -256,17 +256,25 @@ async function check(id, action) {
     c.spawnedLoot.push({type:'cash'}); api.showContainerLoot(c); api.finishRaid(false);
     assert.equal(api.viewingContainer, null); await raid(); api.showContainerLoot(c); api.pickFromContainer(0); assert.equal(api.player.inventory.length, 0);
   });
-  await check('B11: lobby capacity updates immediately; duplicate gear and overload are blocked', async () => {
-    api.finishRaid(false); economy.resetProfile(); economy.setMaxEquipSlots(8);
-    economy.getProfile().stash = [item('backpack'),item('backpack'),item('gem')]; ui.showStartScreen();
-    getElement('stash-grid').children[0].dispatchEvent({type:'click'}); getElement('stash-equip-selected').onclick();
-    assert.equal(economy.getMaxEquipSlots(), 12); assert.equal(getElement('equip-capacity-text').innerText, '容量 12');
-    assert.equal(economy.equipItem(0), false); assert.equal(economy.equipItem(1), false);
-    getElement('equipped-grid').children[0].dispatchEvent({type:'click'}); assert.equal(getElement('equip-capacity-text').innerText, '容量 8');
-    economy.getProfile().equipped = Array.from({length:9}, () => item('medkit')); ui.refreshLobbyUI();
-    assert.equal(getElement('deploy-btn').disabled, true); assert.throws(() => economy.beginRaid('overload'), /容量/);
-    economy.unequipItem(0); ui.refreshLobbyUI(); assert.equal(getElement('deploy-btn').disabled, false);
-    economy.getProfile().stash = Array.from({length:70}, () => item('gem')); ui.refreshLobbyUI(); assert.equal(getElement('stash-grid').children.length, 70);
+  await check('B11: lobby grid capacity follows one backpack; overload and stash pagination remain usable', async () => {
+    api.finishRaid(false); economy.resetProfile(); economy.setMaxEquipSlots(24);
+    economy.getProfile().stash=[item('backpack'),item('backpack'),item('gem')];ui.showStartScreen();
+    getElement('stash-grid').querySelectorAll('.stash-item')[0].dispatchEvent({type:'click'});getElement('stash-equip-selected').onclick();
+    assert.equal(economy.getMaxEquipSlots(),36);assert.match(getElement('equip-capacity-text').innerText,/36/);
+    assert.equal(economy.equipItem(0),false);assert.equal(economy.equipItem(1),false);
+    getElement('lobby-gear-grid').children[3].querySelectorAll('.stash-item')[0].dispatchEvent({type:'click'});
+    assert.equal(economy.getMaxEquipSlots(),24);
+    economy.getProfile().equipped=Array.from({length:7},()=>item('medkit_large'));ui.refreshLobbyUI();
+    assert.equal(getElement('deploy-btn').disabled,true);assert.throws(()=>economy.beginRaid('overload'),/格位/);
+    economy.unequipItem(0);ui.refreshLobbyUI();assert.equal(getElement('deploy-btn').disabled,false);
+    economy.getProfile().stash=Array.from({length:70},()=>item('gem'));ui.refreshLobbyUI();
+    const seen=new Set();
+    for(let page=0;page<5;page++){
+      for(const button of getElement('stash-grid').querySelectorAll('.stash-item'))seen.add(Number(button.dataset.index));
+      const buttons=getElement('stash-page-controls').children;
+      if(page<4)buttons.at(-1).dispatchEvent({type:'click'});
+    }
+    assert.equal(seen.size,70);
   });
   const wide = {name:'自制宽地图',width:100,height:50,tileSize:64, tiles:Array(50).fill(Array(100).fill('0').join(',')),
     spawns:[{x:70,y:10,team:'pmc'}],extractions:[{x:80,y:10,w:3,h:3}]};
@@ -339,7 +347,7 @@ async function check(id, action) {
     Object.assign(bot,{state:'aggro',hasVisualContact:true,reactionDelay:0,aiTickTimer:100,targetX:bot.x,targetY:bot.y});
     api.state({bots:[bot]}); api.update(0.1); assert.equal(api.player.action,null); assert(api.player.inventory.includes(med));
   });
-  await check('MVP: two protected slots survive defeat, refresh, and retry without duplicates', async () => {
+  await check('MVP: protected 2x2 grid survives defeat, refresh, and retry without duplicates', async () => {
     await raid(); const gem=api.newLoot(0,0,'gem'), cash=api.newLoot(0,0,'cash');
     api.giveLoot(gem); api.giveLoot(cash); api.secureLoot(gem.id); api.secureLoot(cash.id);
     assert.equal(api.player.secureInventory.length,2); assert.equal(api.player.inventory.length,0);
@@ -387,7 +395,88 @@ async function check(id, action) {
     assert.equal(api.raidState,'dead'); assert.equal(economy.getCoins(),2000);
   });
 
-  const output = {date:'2026-10-17',methodology:'Real ES modules in isolated VM; DOM, storage, audio, renderer and scheduler are doubles. Controlled game steps are <= 0.1 seconds.',passed:results.filter(x=>x.passed).length,total:results.length,results};
+
+  await check('V2: picked guns equip into fixed slots without farming basic gear or reserve ammo',async()=>{
+    await raid();const gun=api.newLoot(0,0,'weapon_mp5');api.giveLoot(gun);
+    const reserve=api.player.ammoReserves['9mm'];assert(api.equipRaidItem({id:gun.id,slot:0}));
+    assert.equal(api.player.inventory.length,0);assert.equal(api.player.gun.id,'weapon_mp5');
+    api.player.gun.currentAmmo=0;api.player.gun.cooldown=0.7;
+    assert(api.unequipRaidItem({slot:0}));assert.equal(api.player.gun.id,'unarmed');
+    api.fireWeapon();assert.equal(api.player.gun.currentAmmo,0);
+    assert.equal(api.player.inventory[0].weaponState.currentAmmo,0);
+    assert(api.equipRaidItem({id:api.player.inventory[0].id,slot:1}));
+    assert.equal(api.player.gun.currentAmmo,0);assert.equal(api.player.gun.cooldown,0.7);
+    assert.equal(api.player.ammoReserves['9mm'],reserve);assert.equal(api.player.loadoutGear.length,1);
+    assert.equal(api.unequipRaidItem({slot:0}),false);
+  });
+  await check('V2: armor swaps preserve damaged durability and equipping failure is atomic',async()=>{
+    await raid('tactical',['armor_heavy']);api.player.armor=45;
+    const light=api.newLoot(0,0,'armor_light');light.durability=17;api.giveLoot(light);
+    assert(api.equipRaidItem({id:light.id,slot:'armor'}));assert.equal(api.player.armor,17);assert.equal(api.player.armorClass,2);
+    const heavy=api.player.inventory.find(i=>i.type==='armor_heavy');assert.equal(heavy.durability,45);
+    assert(api.equipRaidItem({id:heavy.id,slot:'armor'}));assert.equal(api.player.armor,45);
+    api.finishRaid(true);assert.equal(economy.getEquipped().filter(i=>i.id==='armor_heavy').length,1);
+    await raid('tactical',['weapon_sniper']);
+    const small=api.newLoot(0,0,'weapon_mp5');api.giveLoot(small);
+    while(api.giveLoot(api.newLoot(0,0,'cash'))) {}
+    const before=JSON.stringify({bag:api.player.inventory,gear:api.player.loadoutGear,gun:api.player.gun});
+    assert.equal(api.equipRaidItem({id:small.id,slot:0}),false);
+    assert.equal(JSON.stringify({bag:api.player.inventory,gear:api.player.loadoutGear,gun:api.player.gun}),before);
+  });
+  await check('V2: four repair kits restore configured amounts only after completing and never overfill',async()=>{
+    for(const [id,amount,time] of [['repair_improvised',40,8],['repair_standard',80,7],['repair_precision',120,6],['repair_advanced',180,5]]) {
+      await raid('heavy',['armor_heavy',id]);api.player.armor=0;
+      const kit=api.player.inventory.find(i=>i.type===id);api.useRepair(kit.id);
+      step(time-0.1);assert.equal(api.player.armor,0);assert(api.player.inventory.includes(kit));
+      step(0.2);assert.equal(api.player.armor,amount);assert(!api.player.inventory.includes(kit));
+      assert.equal(api.player.loadoutGear.find(i=>i.id==='armor_heavy').durability,amount);
+    }
+    await raid('tactical',['armor_light','repair_advanced']);api.player.armor=119;
+    const kit=api.player.inventory[0];api.useRepair(kit.id);step(5.1);assert.equal(api.player.armor,120);
+  });
+  await check('V2: repair interruption consumes nothing and never repairs a replacement of the same type',async()=>{
+    await raid('tactical',['armor_light','repair_standard']);api.player.armor=10;
+    const kit=api.player.inventory[0];api.useRepair(kit.id);step(1);input.keys.d=true;api.update(0.1);input.resetInput();
+    assert.equal(api.player.action,null);assert(api.player.inventory.includes(kit));assert.equal(api.player.armor,10);
+    api.useRepair(kit.id);
+    const replacement=api.newLoot(0,0,'armor_light');replacement.durability=30;api.giveLoot(replacement);
+    assert(api.equipRaidItem({id:replacement.id,slot:'armor'}));assert.equal(api.player.action,null);
+    step(8);assert.equal(api.player.armor,30);assert(api.player.inventory.includes(kit));
+    api.useRepair(kit.id);api.togglePause(true);step(20);assert.equal(api.player.armor,30);
+    api.togglePause(false);step(7.1);assert.equal(api.player.armor,110);
+  });
+  await check('V2: big footprints, 2x2 protection and backpack shrink respect geometry',async()=>{
+    await raid();const wide=api.newLoot(0,0,'cash');wide.gridW=3;wide.gridH=1;
+    assert(api.giveLoot(wide));api.secureLoot(wide.id);assert.equal(api.player.secureInventory.length,0);assert(api.player.inventory.includes(wide));
+    const huge=api.newLoot(0,0,'portable_generator');assert(api.giveLoot(huge));
+    const usage=ns('inventory').inventoryUsage(api.player.inventory);assert(usage>=15);
+    assert(api.rotateInventoryItem(wide.id)!==false);assert(api.player.inventory.includes(wide));
+    await raid('scout',['backpack']);
+    while(api.giveLoot(api.newLoot(0,0,'cash'))) {}
+    const before=JSON.stringify(api.player.inventory);assert.equal(api.unequipRaidItem({slot:'backpack'}),false);
+    assert.equal(JSON.stringify(api.player.inventory),before);assert.equal(api.player.maxSlots,36);
+  });
+  await check('V2: container pickup retains real weapon magazine and armor durability metadata',async()=>{
+    await raid();const c=container();c.isOpen=true;
+    c.spawnedLoot=[{type:'weapon_mp5',weaponState:{currentAmmo:3,cooldown:0.4},gridW:2,gridH:3},{type:'armor_light',durability:7,maxDurability:120}];
+    api.showContainerLoot(c);api.pickFromContainer(0);api.pickFromContainer(0);
+    const gun=api.player.inventory.find(i=>i.type==='weapon_mp5'),armor=api.player.inventory.find(i=>i.type==='armor_light');
+    assert(api.equipRaidItem({id:gun.id,slot:0}));assert.equal(api.player.gun.currentAmmo,3);
+    assert(api.equipRaidItem({id:armor.id,slot:'armor'}));assert.equal(api.player.armor,7);
+    api.finishRaid(true);
+    const savedGun=economy.getEquipped().find(i=>i.id==='weapon_mp5');assert.equal(savedGun.weaponState.currentAmmo,3);
+    assert.equal(economy.getEquipped().find(i=>i.id==='armor_light').durability,7);
+    assert(economy.getProfile().stats.bestHaul>0);
+  });
+  await check('V2: paused and settled events cannot equip, unequip or start repairs',async()=>{
+    await raid('tactical',['armor_light','repair_standard']);api.player.armor=10;
+    const gun=api.newLoot(0,0,'weapon_mp5');api.giveLoot(gun);api.togglePause(true);
+    assert.equal(api.equipRaidItem({id:gun.id}),false);assert.equal(api.unequipRaidItem({slot:'armor'}),false);
+    api.useRepair(api.player.inventory.find(i=>i.type==='repair_standard').id);assert.equal(api.player.action,null);
+    api.togglePause(false);api.finishRaid(false);assert.equal(api.equipRaidItem({id:gun.id}),false);
+  });
+
+  const output = {date:'2026-10-18',revision:require('node:child_process').execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),methodology:'Real ES modules in isolated VM; DOM, storage, audio, renderer and scheduler are doubles. Controlled game steps are <= 0.1 seconds.',passed:results.filter(x=>x.passed).length,total:results.length,results};
   fs.writeFileSync(path.join(root,'docs/mvp/game-results.json'),JSON.stringify(output,null,2));
   console.log(`${output.passed}/${output.total} checks passed`);
   if (output.passed !== output.total) process.exitCode = 1;

@@ -5,7 +5,7 @@ import { keys, mouse, initInput, resetInput } from './input.js';
 import { aabb, getPlayerBox, raycastHitscan, movePlayer, hasLineOfSight } from './physics.js';
 import { updateBots } from './ai.js';
 import { render } from './renderer.js';
-import { initHUD, updateHUD, refreshInventoryGrid, pushNotification, getElements } from './hud.js';
+import { initHUD, updateHUD, refreshInventoryGrid, renderContainerGrid, pushNotification, getElements } from './hud.js';
 import { showStartScreen, hideStartScreen, onDeploy, showGameOver, showVictory, onRestart, initLobbyUI, initShopUI, refreshLobbyUI } from './ui.js';
 import { loadShopData, getShopItems } from './shopdata.js';
 import { loadMap, buildWorldFromMap } from './maploader.js';
@@ -14,15 +14,16 @@ import { randomLootType, getLootDef, loadLootData } from './lootdata.js';
 import { loadOperatorData, defaultOperator, getOperatorDef, allOperators } from './operatordata.js';
 import { loadBotData } from './botdata.js';
 import { loadProfile, updateSecureInventory, getCoins, getEquipped, getLoadoutError, setMaxEquipSlots, beginRaid, settleRaid, cancelDeployment } from './economy.js';
-import { itemId, itemCategory, isGear, medicineHealing, loadoutCapacity } from './itemrules.js';
+import { itemId, itemCategory, isGear, medicineHealing, loadoutCapacity, armorSpec, repairValue, BAG_COLUMNS } from './itemrules.js';
 import { loadWeaponData, getWeaponDef } from './weapondata.js';
 import { assetMarkup, loadGameAssets } from './assets.js';
 
+import { packItems, itemDimensions } from './inventory.js';
 import { applyDamage, resolveThrow } from './combat.js';
 import { getSettings, loadSettings } from './settings.js';
 import { confirmAction } from './ui-shell.js';
 
-// Artwork is optional: missing images fall back to Emoji.
+// Missing art uses a neutral silhouette without blocking gameplay.
 loadGameAssets();
 
 // ---- Canvas setup ----
@@ -47,7 +48,7 @@ let camera = { x: 0, y: 0 };
 let isGameOver = false;
 let gameStarted = false; // prevents update logic until deploy
 let shakeAmount = 0;
-let helipad = { x: WORLD_WIDTH - 400, y: 300, w: 220, h: 220, emoji: '🚁' };
+let helipad = { x: WORLD_WIDTH - 400, y: 300, w: 220, h: 220, emoji: '' };
 let extractions = []; // multiple extraction points
 let mapName = 'DELTA-01';
 let extractionBeepTimer = 0;
@@ -74,6 +75,148 @@ function closeRaidPanels() {
   resetInput();
 }
 
+
+const UNARMED = {id:'unarmed',name:'未装备武器',currentAmmo:0,maxAmmo:0,magSize:0,fireRate:1,cooldown:0,ammoType:'none',fireMode:'semi',damage:0,range:0,isReloading:false};
+function layoutBag(items, capacity = player.maxSlots, cols = BAG_COLUMNS) {
+  const rows = Math.floor(capacity / cols);
+  let result = packItems(items, cols, rows, {allowRotation:true});
+  if (result.ok) return result;
+  const pairs = items.map(item => ({original:item,copy:{...item,gridX:undefined,gridY:undefined}}));
+  pairs.sort((a,b) => { const ad=itemDimensions(a.copy),bd=itemDimensions(b.copy); return bd.w*bd.h-ad.w*ad.h; });
+  const origins = new Map(pairs.map(pair => [pair.copy,pair.original]));
+  result = packItems(pairs.map(pair=>pair.copy),cols,rows,{allowRotation:true});
+  return {...result,placements:result.placements.map(p=>({...p,item:origins.get(p.item)}))};
+}
+function applyPacking(plan) {
+  for (const p of plan.placements) { p.item.gridX=p.x; p.item.gridY=p.y; p.item.rotated=p.rotated; }
+}
+function transferLayout(items, incoming, capacity = player.maxSlots, cols = BAG_COLUMNS) {
+  const fresh = {...incoming,gridX:undefined,gridY:undefined};
+  const result = layoutBag([...items,fresh],capacity,cols);
+  return {...result,placements:result.placements.map(p=>p.item===fresh?{...p,item:incoming}:p)};
+}
+function makeWeapon(item) {
+  const def=getWeaponDef(itemId(item));
+  if (!def) throw new Error('武器配置缺失');
+  const saved=item.weaponState;
+  return {...def,gearInstanceId:item.instanceId || item.id,
+    currentAmmo:Math.max(0,Math.min(def.magSize,saved?.currentAmmo ?? def.magSize)),
+    cooldown:Math.max(0,saved?.cooldown ?? 0),isReloading:false,reloadTimer:0};
+}
+function wornArmor() { return player.loadoutGear.find(item=>itemCategory(item)==='armor'); }
+function gearForSlot(slot) {
+  if (slot==='armor' || slot==='backpack') return player.loadoutGear.find(item=>itemCategory(item)===slot);
+  return player.loadoutGear.find(item=>item.instanceId===weaponSlots[slot]?.gearInstanceId);
+}
+function gearAsLoot(gear) {
+  const loot=newLoot(player.x,player.y,itemId(gear));
+  for(const key of ['name','value','rarity','gridW','gridH','rotated','broughtIn','durability','maxDurability']) if(gear[key]!==undefined) loot[key]=gear[key];
+  loot.id=loot.instanceId=gear.instanceId || loot.id;
+  if(itemCategory(gear)==='armor') {loot.durability=player.armor;loot.maxDurability=player.maxArmor;}
+  const gun=weaponSlots.find(g=>g?.gearInstanceId===gear.instanceId);
+  if(gun) loot.weaponState={currentAmmo:gun.currentAmmo,cooldown:gun.cooldown};
+  else if(gear.weaponState) loot.weaponState={...gear.weaponState};
+  return loot;
+}
+function snapshotGearStates() {
+  for(const gear of player.loadoutGear) {
+    if(itemCategory(gear)==='armor') {gear.durability=player.armor;gear.maxDurability=player.maxArmor;}
+    const gun=weaponSlots.find(g=>g?.gearInstanceId===gear.instanceId);
+    if(gun) gear.weaponState={currentAmmo:gun.currentAmmo,cooldown:gun.cooldown};
+  }
+}
+function refreshRaidInventory() {
+  player.weaponSlots=weaponSlots;player.selectedWeaponIdx=selectedWeaponIdx;
+  syncItemCounts();refreshInventoryGrid(player);
+}
+function equipRaidItem(detail) {
+  if(!isRaidActive()) return false;
+  const id=typeof detail==='string'?detail:detail?.id;
+  const incoming=player.inventory.find(item=>item.id===id);
+  if(!incoming || !isGear(incoming)) return false;
+  const category=itemCategory(incoming);
+  let slot=category;
+  if(category==='weapon') {
+    if(!getWeaponDef(itemId(incoming))) return false;
+    slot=detail?.slot===0 || detail?.slot===1 ? detail.slot : weaponSlots.findIndex(g=>!g || g.isDefault);
+    if(slot<0) slot=selectedWeaponIdx;
+  }
+  const old=gearForSlot(slot);
+  const oldLoot=old?gearAsLoot(old):null;
+  const nextGear=player.loadoutGear.filter(item=>item!==old).concat(incoming);
+  const nextBag=player.inventory.filter(item=>item!==incoming);
+  const capacity=loadoutCapacity(player.baseSlots,nextGear);
+  const plan=oldLoot?transferLayout(nextBag,oldLoot,capacity):layoutBag(nextBag,capacity);
+  if(!plan.ok) {pushNotification('更换后背包无法容纳旧装备，请先整理格位');return false;}
+  cancelAction('换装中断当前操作');cancelSearches();
+  incoming.instanceId ||= incoming.id;
+  if(oldLoot) nextBag.push(oldLoot);
+  player.inventory=nextBag;player.loadoutGear=nextGear;player.maxSlots=capacity;
+  applyPacking(plan);
+  if(category==='weapon') {weaponSlots[slot]=makeWeapon(incoming);selectedWeaponIdx=slot;applyWeaponStats();}
+  else if(category==='armor') {
+    const spec=armorSpec(incoming);player.maxArmor=spec.maxDurability;player.armorClass=spec.armorClass;
+    player.armor=Math.max(0,Math.min(player.maxArmor,incoming.durability ?? player.maxArmor));
+  }
+  refreshRaidInventory();pushNotification('已装备 '+incoming.name);return true;
+}
+function unequipRaidItem(detail) {
+  if(!isRaidActive()) return false;
+  const slot=detail?.slot ?? detail;
+  if(![0,1,'armor','backpack'].includes(slot)) return false;
+  const gear=gearForSlot(slot);
+  if(!gear) return false;
+  const loot=gearAsLoot(gear),nextGear=player.loadoutGear.filter(item=>item!==gear);
+  const capacity=loadoutCapacity(player.baseSlots,nextGear);
+  const plan=transferLayout(player.inventory,loot,capacity);
+  if(!plan.ok) {pushNotification('背包空间不足，无法卸下这件装备');return false;}
+  cancelAction('卸装中断当前操作');cancelSearches();
+  player.inventory.push(loot);player.loadoutGear=nextGear;player.maxSlots=capacity;applyPacking(plan);
+  if(typeof slot==='number') {
+    weaponSlots[slot]=null;
+    if(selectedWeaponIdx===slot) selectedWeaponIdx=weaponSlots.findIndex(Boolean);
+    applyWeaponStats();
+  } else if(slot==='armor') {player.armor=player.maxArmor=player.armorClass=0;}
+  refreshRaidInventory();pushNotification('已放回背包 '+loot.name);return true;
+}
+function useRepair(instanceId) {
+  if(!isRaidActive() || player.action || player.gun.isReloading) return;
+  const armor=wornArmor();
+  if(!armor || player.maxArmor<=0) {pushNotification('请先装备护甲');return;}
+  if(player.armor>=player.maxArmor) {pushNotification('护甲耐久已满');return;}
+  const kit=player.inventory.find(item=>item.id===instanceId && repairValue(item)>0);
+  if(!kit) return;
+  cancelSearches();
+  const duration=kit.useTime || getLootDef(itemId(kit)).useTime || 8;
+  player.action={type:'repair',item:kit,duration,remaining:duration,armorInstanceId:armor.instanceId,repair:repairValue(kit)};
+  pushNotification('正在维修护甲 · '+duration+' 秒，移动、开火或受击会中断');
+}
+function rotateInventoryItem(id) {
+  if(!isRaidActive()) return;
+  const secured=player.secureInventory.some(item=>item.id===id);
+  const list=secured?player.secureInventory:player.inventory;
+  const target=list.find(item=>item.id===id);if(!target) return;
+  const copies=list.map(item=>({...item,...(item===target?{rotated:!item.rotated,gridX:undefined,gridY:undefined}:{})}));
+  const plan=packItems(copies,secured?2:BAG_COLUMNS,secured?2:Math.floor(player.maxSlots/BAG_COLUMNS));
+  if(!plan.ok) {pushNotification('旋转后空间不足，请先整理背包');return;}
+  applyPacking(plan);
+  if(secured) {try{updateSecureInventory(activeRaidId,copies);}catch(error){pushNotification(error.message);return;}}
+  copies.forEach((copy,index)=>{list[index].gridX=copy.gridX;list[index].gridY=copy.gridY;list[index].rotated=copy.rotated;});
+  refreshRaidInventory();
+}
+function organizeInventory(detail='backpack') {
+  if(!isRaidActive()) return;
+  const secured=detail==='secure';
+  const list=secured?player.secureInventory:player.inventory;
+  const copies=list.map(item=>({...item,gridX:undefined,gridY:undefined})).sort((a,b)=>{const ad=itemDimensions(a),bd=itemDimensions(b);return bd.w*bd.h-ad.w*ad.h;});
+  const plan=layoutBag(copies,secured?4:player.maxSlots,secured?2:BAG_COLUMNS);
+  if(!plan.ok) {pushNotification('当前物品无法完成整理');return;}
+  applyPacking(plan);
+  if(secured) {try{updateSecureInventory(activeRaidId,copies);}catch(error){pushNotification(error.message);return;}}
+  for(const copy of copies){const item=list.find(x=>x.id===copy.id);item.gridX=copy.gridX;item.gridY=copy.gridY;item.rotated=copy.rotated;}
+  refreshRaidInventory();
+}
+
 function syncItemCounts() {
   player.grenadeCount = player.inventory.filter(item => item.type === 'grenade').length;
   player.medkitCount = player.inventory.filter(item => medicineHealing(item) > 0).length;
@@ -83,7 +226,8 @@ function syncItemCounts() {
 function newLoot(x, y, type) {
   const loot = new Loot(x, y, type);
   applyLootData(loot, getLootDef(type));
-  loot.raidId = activeRaidId;
+  loot.raidId = activeRaidId; loot.instanceId = loot.id;
+  if(itemCategory(loot)==='weapon') {const gun=getWeaponDef(type);if(gun) loot.weaponState={currentAmmo:gun.magSize,cooldown:0};}
   return loot;
 }
 
@@ -93,10 +237,11 @@ function giveLoot(loot) {
     const type = def.ammoType, amount = def.ammoAmount;
     if (!type || !Number.isFinite(amount) || amount <= 0) return false;
     player.ammoReserves[type] = (player.ammoReserves[type] || 0) + amount;
-    pushNotification(`📦 弹药补给 +${amount} 发 (${type})`);
+    pushNotification(` 弹药补给 +${amount} 发 (${type})`);
   } else {
-    if (player.inventory.length + player.loadoutGear.length >= player.maxSlots) { pushNotification('⚠️ 背包已满'); return false; }
-    player.inventory.push(loot);
+    const plan=transferLayout(player.inventory,loot);
+    if(!plan.ok) {pushNotification('背包格位不足，请整理空间或旋转物品');return false;}
+    player.inventory.push(loot);applyPacking(plan);
   }
   syncItemCounts(); refreshInventoryGrid(player);
   return true;
@@ -128,31 +273,31 @@ async function initWorld() {
     particles = []; soundBlips = []; shakeAmount = 0; extractionBeepTimer = 0;
     extractions = world.extractions; helipad = world.helipad; mapName = world.mapName;
     player.x = world.spawnX; player.y = world.spawnY;
-    player.maxSlots = loadoutCapacity(opDef.maxSlots || 12, equipped);
+    player.baseSlots=opDef.maxSlots || 30;
+    player.maxSlots = loadoutCapacity(player.baseSlots, equipped);
     camera.x = player.x - canvas.width / 2; camera.y = player.y - canvas.height / 2;
-    weaponSlots = equipped.filter(item => itemCategory(item) === 'weapon').map(item => ({
-      ...getWeaponDef(item.id), id: item.id, emoji: item.emoji, cooldown: 0,
-      currentAmmo: getWeaponDef(item.id)?.magSize || 30, isReloading: false, reloadTimer: 0
-    }));
-    if (!weaponSlots.length) weaponSlots.push({ ...player.gun });
-    player.ammoReserves = {};
-    for (const gun of weaponSlots) player.ammoReserves[gun.ammoType] = (player.ammoReserves[gun.ammoType] || 0) + (gun.maxAmmo || 0);
-    selectedWeaponIdx = 0; applyWeaponStats();
-    player.loadoutGear = equipped.filter(isGear);
+    player.loadoutGear = equipped.filter(isGear).map(item=>({...item,broughtIn:true,instanceId:item.instanceId || `gear-${id}-${Math.random().toString(36).slice(2)}`}));
+    weaponSlots = player.loadoutGear.filter(item=>itemCategory(item)==='weapon').map(makeWeapon);
+    if(!weaponSlots.length) weaponSlots.push({...player.gun,isDefault:true});
+    player.ammoReserves={};
+    for(const gun of weaponSlots) player.ammoReserves[gun.ammoType]=(player.ammoReserves[gun.ammoType]||0)+(gun.maxAmmo||0);
+    selectedWeaponIdx=0;applyWeaponStats();
     for (const item of equipped) {
-      if (item.id === 'armor_light' || item.id === 'armor_heavy') {
-        const heavy = item.id === 'armor_heavy';
-        player.maxArmor = heavy ? 220 : 120;
-        player.armor = Math.max(0, Math.min(player.maxArmor, item.durability ?? player.maxArmor));
-        player.armorClass = heavy ? 5 : 2;
+      if(itemCategory(item)==='armor') {
+        const spec=armorSpec(item);player.maxArmor=spec.maxDurability;player.armorClass=spec.armorClass;
+        player.armor=Math.max(0,Math.min(player.maxArmor,item.durability ?? player.maxArmor));
       }
       if (!isGear(item)) {
         const loot = newLoot(player.x, player.y, itemId(item));
         loot.broughtIn = true;
+        for(const key of ['gridW','gridH','gridX','gridY','rotated','value','rarity','durability','maxDurability']) if(item[key]!==undefined) loot[key]=item[key];
+        if(item.weaponState) loot.weaponState={...item.weaponState};
+        if(item.instanceId) loot.id=loot.instanceId=item.instanceId;
         if (itemCategory(loot) === 'ammo') giveLoot(loot);
         else player.inventory.push(loot);
       }
     }
+    const initialPlan=layoutBag(player.inventory);if(!initialPlan.ok) throw new Error('携带物品无法放入背包');applyPacking(initialPlan);
     for (const loot of loots) loot.raidId = id;
     for (const container of containers) {
       container.raidId = id;
@@ -162,7 +307,7 @@ async function initWorld() {
     syncItemCounts();
     player.weaponSlots = weaponSlots; player.selectedWeaponIdx = selectedWeaponIdx;
     refreshInventoryGrid(player); updateHUD(player, null, null);
-    pushNotification(`⚡ 成功部署至 ${mapName}。寻找物资并前往撤离点！`);
+    pushNotification(` 成功部署至 ${mapName}。寻找物资并前往撤离点！`);
     return true;
   } catch (error) {
     if (deploymentId) {
@@ -178,7 +323,7 @@ async function initWorld() {
     }
     activeRaidId = null;
     raidState = 'lobby'; gameStarted = false;
-    pushNotification(`⚠️ ${error.message}`);
+    pushNotification(` ${error.message}`);
     return false;
   }
 }
@@ -186,10 +331,7 @@ async function initWorld() {
 function finishRaid(survived, outcome = survived ? 'extracted' : 'dead') {
   if (raidState !== 'inRaid' && raidState !== 'settlementPending') return;
   player.raidOutcome ||= outcome;
-  for (const item of player.loadoutGear) if (itemCategory(item) === 'armor') {
-    item.durability = Math.max(0, Math.floor(player.armor));
-    item.maxDurability = player.maxArmor;
-  }
+  snapshotGearStates();
   try {
     if (!settleRaid(activeRaidId, survived, player.loadoutGear, player.inventory, 0, {
       kills: player.kills, duration: Math.floor(player.raidElapsed), outcome: player.raidOutcome,
@@ -211,7 +353,7 @@ function finishRaid(survived, outcome = survived ? 'extracted' : 'dead') {
   closeRaidPanels(); player.isExtracting = false; player.coins = getCoins();
   syncItemCounts(); updateHUD(player, null, null);
   if (survived) {
-    const value = [...player.inventory, ...player.secureInventory].filter(item => !item.broughtIn).reduce((sum, item) => sum + (item.value || 0), 0);
+    const value = [...player.inventory, ...player.secureInventory, ...player.loadoutGear].filter(item => !item.broughtIn).reduce((sum, item) => sum + (item.value || 0), 0);
     showVictory(player, value);
   } else showGameOver(player.mapName, player);
 }
@@ -239,8 +381,8 @@ function alertHit(bot) {
   bot.targetY = bot.lastKnownPlayerY = player.y;
 }
 function fireWeapon() {
-  if (!isRaidActive() || player.gun.isReloading || player.gun.cooldown > 0) return;
-  cancelAction('治疗已中断'); cancelSearches();
+  if (!isRaidActive() || player.gun.id==='unarmed' || player.gun.isReloading || player.gun.cooldown > 0) return;
+  cancelAction('当前操作已中断'); cancelSearches();
   if (player.gun.currentAmmo <= 0) { reloadWeapon(); return; }
   const gun = player.gun;
   gun.currentAmmo--; gun.cooldown = gun.fireRate; shakeAmount = 4;
@@ -269,7 +411,7 @@ function reloadWeapon() {
   if (!isRaidActive()) return;
   syncItemCounts();
   if (player.gun.isReloading || player.gun.currentAmmo === player.gun.magSize || player.gun.maxAmmo <= 0) return;
-  cancelAction('换弹中断治疗');
+  cancelAction('换弹中断当前操作');
   player.gun.isReloading = true;
   player.gun.reloadTimer = player.gun.reloadTime;
 }
@@ -285,7 +427,8 @@ let viewingContainer = null;
 
 function showContainerLoot(c) {
   viewingContainer = c;
-  containerLootTitle.innerText = `${c.emoji} ${c.name} 物品`;
+  containerLootTitle.innerText = `${c.name} / 物资清单`;
+  getElements().inventoryDrawer.classList.remove('hidden');
   renderContainerLootGrid();
   containerLootPanel.classList.remove('hidden');
 }
@@ -296,33 +439,10 @@ function hideContainerLoot() {
 }
 
 function renderContainerLootGrid() {
-  if (!viewingContainer) return;
-  containerLootGrid.innerHTML = '';
-  if (viewingContainer.spawnedLoot.length === 0) {
-    containerLootGrid.innerHTML = '<div class="container-loot-empty">物品已全部取走</div>';
-    containerLootAll.disabled = true;
-    containerLootHint.classList.add('hidden');
-  } else {
-    containerLootAll.disabled = false;
-    containerLootHint.classList.remove('hidden');
-    viewingContainer.spawnedLoot.forEach((item, i) => {
-      const el = document.createElement('div');
-      el.className = 'container-loot-item';
-      el.innerHTML = `
-        <span class="container-loot-item-emoji">${assetMarkup(item)}</span>
-        <div class="container-loot-item-info">
-          <span class="container-loot-item-name">${item.name}</span>
-          <span class="container-loot-item-value">$${(item.value || 0).toLocaleString()}</span>
-        </div>
-        <button class="container-loot-pick">拾取</button>
-      `;
-      el.querySelector('.container-loot-pick').addEventListener('click', (e) => {
-        e.stopPropagation();
-        pickFromContainer(i);
-      });
-      containerLootGrid.appendChild(el);
-    });
-  }
+  if(!viewingContainer) return;
+  containerLootAll.disabled=viewingContainer.spawnedLoot.length===0;
+  containerLootHint.classList.toggle('hidden',viewingContainer.spawnedLoot.length===0);
+  renderContainerGrid(viewingContainer,item=>{const index=viewingContainer?.spawnedLoot.indexOf(item);if(index>=0) pickFromContainer(index);});
 }
 
 function validContainer(container) {
@@ -336,10 +456,11 @@ function pickFromContainer(i) {
   const item = viewingContainer.spawnedLoot[i];
   if (!item) return;
   const loot = newLoot(viewingContainer.x, viewingContainer.y, item.type);
-  loot.isSearched = true; // a backpack inside a container is an item, not another death bag
+  for(const key of ['name','value','rarity','gridW','gridH','rotated','durability','maxDurability','weaponState','broughtIn']) if(item[key]!==undefined) loot[key]=typeof item[key]==='object'?{...item[key]}:item[key];
+  loot.isSearched = true; // Containers carry ordinary backpack items.
   if (!giveLoot(loot)) return;
   viewingContainer.spawnedLoot.splice(i, 1);
-  pushNotification(`📥 拾取了 ${loot.name}`); playPickupSound();
+  pushNotification(` 拾取了 ${loot.name}`); playPickupSound();
   renderContainerLootGrid();
 }
 
@@ -348,13 +469,13 @@ function takeAllFromContainer() {
   const items = [...viewingContainer.spawnedLoot];
   let taken = 0;
   for (let i = items.length - 1; i >= 0; i--) {
-    if (player.inventory.length + player.loadoutGear.length >= player.maxSlots && itemCategory(items[i]) !== 'ammo') continue;
+    // Each pickup performs the same geometric capacity check.
     const before = viewingContainer.spawnedLoot.length;
     pickFromContainer(i);
     taken += before - viewingContainer.spawnedLoot.length;
   }
-  if (taken > 0) pushNotification(`📥 全部拾取，获得 ${taken} 件物品`);
-  else if (viewingContainer.spawnedLoot.length > 0) pushNotification('⚠️ 背包已满');
+  if (taken > 0) pushNotification(` 全部拾取，获得 ${taken} 件物品`);
+  else if (viewingContainer.spawnedLoot.length > 0) pushNotification(' 背包已满');
 }
 
 if (containerLootClose) containerLootClose.addEventListener('click', hideContainerLoot);
@@ -362,25 +483,25 @@ if (containerLootAll) containerLootAll.addEventListener('click', takeAllFromCont
 
 function startBackpackSearch(loot) {
   if (loot.isSearching || loot.isSearched) return;
-  cancelAction('搜索中断治疗'); cancelSearches();
+  cancelAction('搜索中断当前操作'); cancelSearches();
   loot.isSearching = true;
   loot.searchDuration = 1.5 * (player.passive === 'fastSearch' ? player.passiveValue : 1);
   loot.searchTimer = loot.searchDuration;
-  pushNotification(`🎒 正在搜索遗落背包... (${loot.searchDuration.toFixed(1)}秒)`);
+  pushNotification(` 正在搜索遗落背包... (${loot.searchDuration.toFixed(1)}秒)`);
 }
 
 function takeGroundLoot(loot, range = 60) {
   if (!isRaidActive() || !loots.includes(loot) || loot.raidId !== activeRaidId) return;
   const distance = Math.hypot(player.x - loot.x, player.y - loot.y);
-  if (distance > range || !hasLineOfSight(player, loot, walls)) { pushNotification('⚠️ 距离太远或有障碍阻挡'); return; }
+  if (distance > range || !hasLineOfSight(player, loot, walls)) { pushNotification(' 距离太远或有障碍阻挡'); return; }
   if (loot.type === 'backpack' && !loot.isSearched) {
-    if (distance > 60) { pushNotification('🎒 请靠近背包后搜索'); return; }
+    if (distance > 60) { pushNotification(' 请靠近背包后搜索'); return; }
     startBackpackSearch(loot); return;
   }
   if (loot.isSearching || !giveLoot(loot)) return;
   loots.splice(loots.indexOf(loot), 1);
   if (nearestLoot === loot) nearestLoot = null;
-  pushNotification(`📥 拾取了 ${loot.name}`); playPickupSound();
+  pushNotification(` 拾取了 ${loot.name}`); playPickupSound();
 }
 
 function interactTarget() {
@@ -391,11 +512,11 @@ function interactTarget() {
     if (container.isOpen) { if (container.spawnedLoot.length) showContainerLoot(container); return; }
     if (container.isSearching) return;
     if (container.requiredKey && ![...player.inventory, ...player.secureInventory].some(item => item.type === container.requiredKey)) {
-      pushNotification(`🔒 需要${getLootDef(container.requiredKey).name}才能打开${container.name}`); return;
+      pushNotification(` 需要${getLootDef(container.requiredKey).name}才能打开${container.name}`); return;
     }
-    cancelAction('搜索中断治疗'); cancelSearches();
+    cancelAction('搜索中断当前操作'); cancelSearches();
     container.isSearching = true; container.searchTimer = container.searchDuration;
-    pushNotification(`🔍 正在搜索 ${container.name}... (${container.searchDuration.toFixed(1)}秒)`);
+    pushNotification(` 正在搜索 ${container.name}... (${container.searchDuration.toFixed(1)}秒)`);
     return;
   }
   if (nearestLoot) takeGroundLoot(nearestLoot);
@@ -403,14 +524,15 @@ function interactTarget() {
 
 function toggleInventory() {
   if (!isRaidActive()) return;
-  getElements().inventoryDrawer.classList.toggle('hidden');
+  const closed=getElements().inventoryDrawer.classList.toggle('hidden');
+  if(closed) hideContainerLoot(); else refreshRaidInventory();
 }
 
 function throwGrenade() {
   if (!isRaidActive()) return;
   const index = player.inventory.findIndex(item => item.type === 'grenade');
   if (index < 0) { pushNotification('没有手榴弹'); return; }
-  cancelAction('治疗已中断'); cancelSearches();
+  cancelAction('当前操作已中断'); cancelSearches();
   const landing = resolveThrow(player, {
     x: Math.max(6, Math.min(worldWidth - 6, mouse.worldX)),
     y: Math.max(6, Math.min(worldHeight - 6, mouse.worldY))
@@ -434,7 +556,7 @@ function updateGrenades(dt) {
       if (distance >= 150 || !hasLineOfSight(grenade, target, walls)) continue;
       const hit = applyDamage(target, 100 * (1 - distance / 150), 45);
       if (target === player && (hit.hpDamage || hit.armorDamage)) {
-        cancelAction('受到爆炸伤害，治疗已中断'); player.damageFreeTime = 0;
+        cancelAction('受到爆炸伤害，当前操作已中断'); player.damageFreeTime = 0;
         if (player.isExtracting) player.extractTimer = player.extractDuration;
       } else if (target !== player) { alertHit(target); registerKill(target); }
     }
@@ -454,46 +576,52 @@ function useMedkit(itemInstanceId = null) {
   pushNotification(`正在使用 ${chosen.item.name} · ${duration} 秒，移动、开火或受击会中断`);
 }
 function updateAction(dt) {
-  const action = player.action;
-  if (!action) return;
-  action.remaining -= dt;
-  if (action.remaining > 0) return;
-  player.action = null;
-  const index = player.inventory.indexOf(action.item);
-  if (index < 0) return;
-  const healed = Math.min(action.heal, player.maxHp - player.hp);
-  player.hp += healed; player.inventory.splice(index, 1);
-  syncItemCounts(); refreshInventoryGrid(player);
-  pushNotification(`治疗完成 +${healed} HP`);
+  const action=player.action;if(!action) return;
+  action.remaining-=dt;if(action.remaining>0) return;
+  player.action=null;
+  const index=player.inventory.indexOf(action.item);if(index<0) return;
+  if(action.type==='repair') {
+    const armor=wornArmor();
+    if(!armor || armor.instanceId!==action.armorInstanceId || player.maxArmor<=0) return;
+    const repaired=Math.min(action.repair,player.maxArmor-player.armor);if(repaired<=0) return;
+    player.armor+=repaired;armor.durability=player.armor;armor.maxDurability=player.maxArmor;
+    player.inventory.splice(index,1);pushNotification('维修完成 +'+Math.round(repaired)+' 耐久');
+  } else {
+    const healed=Math.min(action.heal,player.maxHp-player.hp);if(healed<=0) return;
+    player.hp+=healed;player.inventory.splice(index,1);pushNotification('治疗完成 +'+Math.round(healed)+' HP');
+  }
+  refreshRaidInventory();
 }
 function secureLoot(instanceId, remove = false) {
-  if (!isRaidActive()) return;
-  const source = remove ? player.secureInventory : player.inventory;
-  const destination = remove ? player.inventory : player.secureInventory;
-  const index = source.findIndex(item => item.id === instanceId);
-  if (index < 0) return;
-  const item = source[index];
-  if (!remove && !['valuable', 'key', 'medicine'].includes(itemCategory(item))) return;
-  if (destination.length >= (remove ? player.maxSlots - player.loadoutGear.length : 2)) { pushNotification(remove ? '背包已满' : '保护栏已满（2 格）'); return; }
-  const secured = remove ? player.secureInventory.filter(x => x !== item) : [...player.secureInventory, item];
-  try { updateSecureInventory(activeRaidId, secured); }
-  catch (error) { pushNotification(error.message); return; }
-  if (player.action?.item === item) cancelAction('物品已移动，治疗已中断');
-  source.splice(index, 1); destination.push(item);
-  syncItemCounts(); refreshInventoryGrid(player);
+  if(!isRaidActive()) return;
+  const source=remove?player.secureInventory:player.inventory;
+  const target=source.find(item=>item.id===instanceId);if(!target) return;
+  if(!remove && !['valuable','key','medicine','repair'].includes(itemCategory(target))) return;
+  const nextSecure=remove?player.secureInventory.filter(item=>item!==target):[...player.secureInventory,target];
+  const nextBag=remove?[...player.inventory,target]:player.inventory.filter(item=>item!==target);
+  const securePlan=remove?layoutBag(nextSecure,4,2):transferLayout(player.secureInventory,target,4,2);
+  const bagPlan=remove?transferLayout(player.inventory,target):layoutBag(nextBag);
+  if(!securePlan.ok || !bagPlan.ok) {pushNotification(remove?'背包格位不足':'保护栏为 2×2 格，无法放入该物品');return;}
+  const copies=nextSecure.map(item=>({...item}));
+  for(const p of securePlan.placements){const i=nextSecure.indexOf(p.item);Object.assign(copies[i],{gridX:p.x,gridY:p.y,rotated:p.rotated});}
+  try{updateSecureInventory(activeRaidId,copies);}catch(error){pushNotification(error.message);return;}
+  if(player.action?.item===target) cancelAction('移动物品中断当前操作');
+  player.inventory=nextBag;player.secureInventory=nextSecure;
+  applyPacking(securePlan);applyPacking(bagPlan);refreshRaidInventory();
 }
 
 function switchWeapon(idx) {
-  if (!isRaidActive() || idx < 0 || idx >= weaponSlots.length || idx === selectedWeaponIdx) return;
-  cancelAction('切枪中断治疗');
+  if (!isRaidActive() || idx < 0 || idx >= weaponSlots.length || !weaponSlots[idx] || idx === selectedWeaponIdx) return;
+  cancelAction('切枪中断当前操作');
   selectedWeaponIdx = idx; applyWeaponStats();
-  pushNotification(`🔫 切换至 ${player.gun.name}`);
+  pushNotification(` 切换至 ${player.gun.name}`);
 }
 
 function applyWeaponStats() {
   const gun = weaponSlots[selectedWeaponIdx];
-  if (!gun) return;
-  player.gun = gun;
+  player.gun = gun || {...UNARMED};
+  player.weaponSlots=weaponSlots;player.selectedWeaponIdx=selectedWeaponIdx;
+  if(!gun) return;
   gun.maxAmmo = player.ammoReserves[gun.ammoType] || 0;
 }
 
@@ -508,7 +636,7 @@ function update(dt) {
 
   // Run stamina every frame, including stationary searches and medical actions.
   const wantsMove = keys.w || keys.a || keys.s || keys.d;
-  if (wantsMove) { cancelSearches(); cancelAction('移动中断治疗'); }
+  if (wantsMove) { cancelSearches(); cancelAction('移动中断当前操作'); }
   for (const target of [...containers, ...loots]) {
     const range = containers.includes(target) ? 70 : 60;
     if (target.isSearching && (Math.hypot(player.x - target.x, player.y - target.y) > range || !hasLineOfSight(player, target, walls))) {
@@ -521,6 +649,7 @@ function update(dt) {
 
   // Each weapon owns its timers; reserve ammo is shared by ammunition type.
   for (const gun of weaponSlots) {
+    if(!gun) continue;
     gun.cooldown = Math.max(0, gun.cooldown - dt);
     if (!gun.isReloading) continue;
     gun.reloadTimer -= dt;
@@ -528,7 +657,7 @@ function update(dt) {
       gun.isReloading = false; gun.reloadTimer = 0;
       const available = Math.min(gun.magSize - gun.currentAmmo, player.ammoReserves[gun.ammoType] || 0);
       gun.currentAmmo += available; player.ammoReserves[gun.ammoType] -= available;
-      pushNotification(`🔄 ${gun.name} 装弹完毕。`);
+      pushNotification(` ${gun.name} 装弹完毕。`);
     }
   }
   syncItemCounts();
@@ -542,10 +671,10 @@ function update(dt) {
     playEnemyShootSound(); // enemy gunshot sound
   }
   if (botResult.hit) {
-    cancelAction('受击中断治疗');
+    cancelAction('受击中断当前操作');
     shakeAmount = 10;
     playHitSound();
-    pushNotification(`⚠️ 遭到 ${botResult.bot?.emoji || '🧟'} 攻击！`);
+    pushNotification(` 遭到 ${botResult.bot?.botName || '敌人'} 攻击！`);
     player.damageFreeTime = 0;
     if (player.isExtracting) player.extractTimer = player.extractDuration;
     if (player.hp <= 0) {
@@ -565,7 +694,7 @@ function update(dt) {
   updateGrenades(dt);
   if (player.hp <= 0) { finishRaid(false); return; }
   const wasHit = botResult.hit || player.hp < beforeExplosionHp || player.armor < beforeExplosionArmor;
-  if (wasHit) cancelAction('受击中断治疗');
+  if (wasHit) cancelAction('受击中断当前操作');
   updateAction(dt);
   player.raidElapsed += dt;
   player.raidTimeRemaining = Math.max(0, 600 - player.raidElapsed);
@@ -613,7 +742,7 @@ function update(dt) {
       const item = newLoot(loot.x, loot.y, randomLootType());
       item.isSearched = true; loots.push(item);
     }
-    pushNotification(`🎒 背包搜索完成，发现 ${count} 件物品`);
+    pushNotification(` 背包搜索完成，发现 ${count} 件物品`);
     takeGroundLoot(loot);
   }
 
@@ -633,13 +762,15 @@ function update(dt) {
         c.isSearching = false;
         c.isOpen = true;
         // Generate loot into container's spawnedLoot
-        const lootCount = 2 + Math.floor(Math.random() * 3); // 2-4 items
-        for (let li = 0; li < lootCount; li++) {
-          const lt = randomLootType();
-          const def = getLootDef(lt);
-          c.spawnedLoot.push({ type: lt, emoji: def.emoji, name: def.name, value: def.value || 0, rarity: def.rarity || 1, onPickup: def.onPickup, ammoType: def.ammoType, ammoAmount: def.ammoAmount });
+        const lootCount = 2 + Math.floor(Math.random() * 3);
+        for(let attempt=0;attempt<40 && c.spawnedLoot.length<lootCount;attempt++) {
+          const item=newLoot(c.x,c.y,randomLootType());
+          item.isSearched=true;
+          const plan=packItems([...c.spawnedLoot,item],c.gridCols,c.gridRows,{allowRotation:true});
+          if(!plan.ok) continue;
+          c.spawnedLoot.push(item);applyPacking(plan);
         }
-        pushNotification(`🔓 ${c.name} 已打开，获得 ${lootCount} 件物品`);
+        pushNotification(c.name+' 已打开，发现 '+c.spawnedLoot.length+' 件物品');
         showContainerLoot(c);
       }
     }
@@ -752,6 +883,12 @@ function pickNearbyItem(i) {
 
 initInput(canvas, camera, interactTarget, reloadWeapon, toggleInventory, throwGrenade, useMedkit, switchWeapon, toggleNearbyLoot, isRaidActive);
 document.addEventListener('use-medicine', event => useMedkit(event.detail));
+document.addEventListener('use-repair', event=>useRepair(event.detail));
+document.addEventListener('close-inventory',()=>{getElements().inventoryDrawer.classList.add('hidden');hideContainerLoot();});
+document.addEventListener('equip-raid-item', event=>equipRaidItem(event.detail));
+document.addEventListener('unequip-raid-item', event=>unequipRaidItem(event.detail));
+document.addEventListener('rotate-item', event=>rotateInventoryItem(event.detail));
+document.addEventListener('organize-inventory', event=>organizeInventory(event.detail));
 
 function togglePause(force = !isPaused) {
   if (raidState !== 'inRaid') return;
@@ -800,10 +937,10 @@ function initOperatorPicker() {
       <span class="op-name">${op.name}</span>
       <span class="op-desc">${op.description}</span>
       <div class="op-stats">
-        <div class="op-stat-row"><span>❤️</span><div class="op-stat-bar"><div class="op-stat-fill hp" style="width:${hpPct}%"></div></div><span class="op-stat-val">${op.maxHp}</span></div>
-        <div class="op-stat-row"><span>🛡️</span><div class="op-stat-bar"><div class="op-stat-fill armor" style="width:${armorPct}%"></div></div><span class="op-stat-val">${op.maxArmor}</span></div>
-        <div class="op-stat-row"><span>🏃</span><div class="op-stat-bar"><div class="op-stat-fill speed" style="width:${speedPct}%"></div></div><span class="op-stat-val">${op.baseSpeed}</span></div>
-        <div class="op-stat-row"><span>🎒</span><div class="op-stat-bar"><div class="op-stat-fill slots" style="width:${slotsPct}%"></div></div><span class="op-stat-val">${op.maxSlots}</span></div>
+        <div class="op-stat-row"><span>生命</span><div class="op-stat-bar"><div class="op-stat-fill hp" style="width:${hpPct}%"></div></div><span class="op-stat-val">${op.maxHp}</span></div>
+        <div class="op-stat-row"><span>护甲</span><div class="op-stat-bar"><div class="op-stat-fill armor" style="width:${armorPct}%"></div></div><span class="op-stat-val">${op.maxArmor}</span></div>
+        <div class="op-stat-row"><span>移动</span><div class="op-stat-bar"><div class="op-stat-fill speed" style="width:${speedPct}%"></div></div><span class="op-stat-val">${op.baseSpeed}</span></div>
+        <div class="op-stat-row"><span>背包</span><div class="op-stat-bar"><div class="op-stat-fill slots" style="width:${slotsPct}%"></div></div><span class="op-stat-val">${op.maxSlots}</span></div>
       </div>
       ${op.passive ? `<span class="op-passive">${{regen:'脱离伤害 3 秒后回血',precision:'射击散布降低 70%',fastSearch:'搜索耗时减半'}[op.passive] || op.passive}</span>` : ''}
     `;
@@ -864,10 +1001,10 @@ document.getElementById('map-import')?.addEventListener('change', async event =>
     buildWorldFromMap(data);
     const id = `imported-${importedMaps.size + 1}`;
     importedMaps.set(id, data);
-    const option = document.createElement('option'); option.value = id; option.textContent = `🗺️ ${data.name || file.name}`;
+    const option = document.createElement('option'); option.value = id; option.textContent = ` ${data.name || file.name}`;
     const select = document.getElementById('map-select'); select.appendChild(option); select.value = id;
-    pushNotification('🗺️ 地图导入成功');
-  } catch (error) { pushNotification(`⚠️ ${error.message}`); }
+    pushNotification(' 地图导入成功');
+  } catch (error) { pushNotification(` ${error.message}`); }
   event.target.value = '';
 });
 

@@ -20,6 +20,7 @@ const map = (exitAtSpawn=false) => ({
 });
 async function check(name,fn){await fn();results.push({name,passed:true});console.log('PASS',name);}
 async function ready(page,url){await page.goto(url+'/client/',{waitUntil:'networkidle'});await page.locator('#enter-lobby-btn').waitFor();await page.waitForFunction(()=>!document.getElementById('enter-lobby-btn').disabled);}
+async function protectFirst(page){await page.locator('#loot-grid .item-tile').first().click();await page.locator('#inventory-inspector [data-action="secure-item"]').click();}
 async function lobby(page){await page.locator('#enter-lobby-btn').click();await page.locator('#start-screen').waitFor({state:'visible'});}
 async function view(page,name){await page.locator('.nav-tab[data-lobby-view="'+name+'"]').click();}
 const saved = page => page.evaluate(()=>JSON.parse(localStorage.getItem('2d_delta_save_v1')));
@@ -52,9 +53,9 @@ async function newPage(options={}){
   await check('navigation opens real operations, loadout and supply workspaces',async()=>{
     await view(page,'loadout');assert(await page.locator('#view-loadout').isVisible());assert.equal(await page.locator('.nav-tab.active').count(),1);
     assert.match(await page.locator('#stash-grid').innerText(),/仓库等待/);await snapshot(page,'loadout-empty');
-    await view(page,'supply');assert.equal(await page.locator('.shop-item').count(),19);
+    await view(page,'supply');assert.equal(await page.locator('.shop-item').count(),23);
     await page.locator('[data-shop-filter="medicine"]').click();assert.equal(await page.locator('.shop-item').count(),3);
-    await page.locator('[data-shop-filter="all"]').click();assert.equal(await page.locator('.shop-item').count(),19);
+    await page.locator('[data-shop-filter="all"]').click();assert.equal(await page.locator('.shop-item').count(),23);
     await snapshot(page,'supply-1440');
   });
   await check('buying, selecting and equipping uses real persisted assets and money',async()=>{
@@ -108,8 +109,8 @@ async function newPage(options={}){
     CanvasRenderingContext2D.prototype.drawImage=function(image,...args){const name=image.src?.split('/').pop();if(name)window.spriteDraws[name]=(window.spriteDraws[name]||0)+1;return original.call(this,image,...args);};
   });
   await page.locator('#deploy-btn').click();await page.locator('#hud').waitFor({state:'visible'});
-  await check('factory deploy renders all four atlases and consumes the lobby reservation',async()=>{
-    await page.waitForFunction(()=>['operators.png','enemies.png','weapons.png','equipment.png'].every(f=>window.spriteDraws[f]>0));
+  await check('factory deploy renders characters, weapons and generated scenery and consumes the lobby reservation',async()=>{
+    await page.waitForFunction(()=>['operators.png','weapons.png','world.png'].every(f=>window.spriteDraws[f]>0));
     assert((await saved(page)).activeRaid);assert.equal((await saved(page)).equipped.length,0);
     assert.match(await page.locator('#weapon-name-text').innerText(),/M4A1/);
     await snapshot(page,'factory-raid');
@@ -133,9 +134,9 @@ async function newPage(options={}){
   await p.locator('#deploy-btn').click();await p.locator('#hud').waitFor({state:'visible'});
   await check('real imported-map search, protected inventory and successful extraction complete a full loop',async()=>{
     await p.keyboard.press('f');await p.keyboard.press('Tab');assert(await p.locator('#inventory-drawer').isVisible());
-    await p.locator('#loot-grid .loot-action').filter({hasText:'保护'}).click();
+    await protectFirst(p);
     assert.equal((await saved(p)).activeRaid.secureInventory[0].id,'gem');
-    assert.match(await p.locator('#secure-count').innerText(),/1 \/ 2/);await snapshot(p,'protected-inventory');
+    assert.match(await p.locator('#secure-count').innerText(),/1 \/ 4/);await snapshot(p,'protected-inventory');
     await p.keyboard.press('Tab');
     await p.clock.runFor(11000);
     await p.locator('#result-modal').waitFor({state:'visible'});
@@ -151,12 +152,12 @@ async function newPage(options={}){
     await q.locator('#map-import').setInputFiles({name:'reload.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(map(false)))});
     await q.waitForFunction(()=>document.getElementById('map-select').value.startsWith('imported-'));
     await q.locator('#deploy-btn').click();await q.locator('#hud').waitFor({state:'visible'});
-    await q.keyboard.press('f');await q.keyboard.press('Tab');await q.locator('#loot-grid .loot-action').filter({hasText:'保护'}).click();
+    await q.keyboard.press('f');await q.keyboard.press('Tab');await protectFirst(q);
     await q.reload({waitUntil:'networkidle'});await q.waitForFunction(()=>!document.getElementById('enter-lobby-btn').disabled);
     const progress=await saved(q);assert.equal(progress.stash.length,1);assert.equal(progress.stash[0].id,'gem');assert.equal(progress.stats.deaths,1);assert.equal(progress.activeRaid,null);
     await q.reload({waitUntil:'networkidle'});assert.equal((await saved(q)).stash.length,1);
   });
-  await check('all 37 assets render transparently; valuable Emoji and optional artwork fallback remain usable',async()=>{
+  await check('all 73 assets render transparently; valuable sprites and neutral missing-art silhouettes remain usable',async()=>{
     const info=await page.evaluate(async()=>{
       const assets=await import('./js/assets.js');await assets.loadGameAssets();
       const canvas=document.createElement('canvas');canvas.width=canvas.height=128;const ctx=canvas.getContext('2d');const invalid=[];
@@ -168,7 +169,7 @@ async function newPage(options={}){
       }
       return {invalid,count:assets.allAssets().length,gem:assets.getAsset({type:'gem'})?.key||null};
     });
-    assert.equal(info.count,37);assert.deepEqual(info.invalid,[]);assert.equal(info.gem,null);
+    assert.equal(info.count,73);assert.deepEqual(info.invalid,[]);assert.equal(info.gem,'gem');
     const degraded=await newPage();
     await degraded.page.route('**/assets/weapons.png',r=>r.fulfill({status:404,body:''}));
     await ready(degraded.page,url);await lobby(degraded.page);
@@ -191,7 +192,7 @@ async function newPage(options={}){
     // Return to spawn by following normal input for the same displacement (sprint).
     await q.keyboard.down('Shift');await q.keyboard.down('a');await q.clock.runFor(400);await q.keyboard.up('a');await q.keyboard.up('Shift');
     await q.clock.runFor(50);await q.keyboard.press('f');await q.clock.runFor(50);await q.keyboard.press('f');await q.clock.runFor(50);await q.keyboard.press('f');
-    await q.keyboard.press('Tab');await q.locator('#loot-grid .loot-action').filter({hasText:'保护'}).click();await q.keyboard.press('Tab');
+    await q.keyboard.press('Tab');await protectFirst(q);await q.keyboard.press('Tab');
     await q.mouse.move(720,450);await q.clock.runFor(50);await q.keyboard.press('g');await q.clock.runFor(1800);await q.keyboard.press('g');await q.clock.runFor(1800);
     await q.locator('#result-modal').waitFor({state:'visible'});assert.match(await q.locator('#result-title').innerText(),/行动失败/);
     const progress=await saved(q);assert.equal(progress.stats.deaths,1);assert.equal(progress.stash.length,1);assert.equal(progress.stash[0].id,'gem');
@@ -204,6 +205,83 @@ async function newPage(options={}){
     const downloaded=q.waitForEvent('download');await q.locator('#exportBtn').click();const file=await (await downloaded).path();
     const roundtrip=JSON.parse(fs.readFileSync(file,'utf8'));
     assert.equal(roundtrip.botCount,0);assert.equal(roundtrip.extractions[0].cost,3000);assert.equal(roundtrip.lootPoints[0].type,'gem');
+  });
+
+
+  const field=await newPage();const r=field.page;
+  await field.context.addInitScript(()=>{
+    localStorage.setItem('2d_delta_save_v1',JSON.stringify({coins:50000,stash:[],equipped:[
+      {id:'armor_heavy',name:'受损重型防弹护甲',value:15000,durability:40,maxDurability:220},
+      {id:'repair_standard',name:'标准维修包',value:4000}
+    ]}));
+  });
+  await ready(r,url);await lobby(r);await r.locator('[data-operator-id="heavy"]').click();
+  const fieldMap=map(false);fieldMap.lootPoints=['weapon_m4','armor_light','portable_generator','repair_improvised','gem'].map(type=>({x:3,y:4,type}));
+  await r.locator('#map-import').setInputFiles({name:'loadout.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(fieldMap))});
+  await r.waitForFunction(()=>document.getElementById('map-select').value.startsWith('imported-'));
+  await r.clock.install();await r.locator('#deploy-btn').click();await r.locator('#hud').waitFor({state:'visible'});await r.clock.runFor(300);
+  const select=async name=>r.locator('#loot-grid .item-tile').filter({hasText:name}).click();
+  const action=async name=>{await r.locator('#inventory-inspector .loot-action').filter({hasText:name}).click();await r.clock.runFor(50);};
+  await check('field pickup equips a gun and armor through item inspector; magazine and replaced gear survive swaps',async()=>{
+    await r.keyboard.press('h');
+    for(const name of ['M4A1','轻型防弹衣'])await r.locator('.nearby-item').filter({hasText:name}).click();
+    await r.keyboard.press('h');await r.keyboard.press('Tab');
+    await select('M4A1');await action('装备主武器');assert.match(await r.locator('.raid-gear-0 .gear-name').innerText(),/M4A1/);
+    await r.keyboard.press('Tab');await r.mouse.move(1000,450);await r.mouse.down();await r.clock.runFor(20);await r.mouse.up();await r.clock.runFor(100);
+    assert.equal(await r.locator('#ammo-current').innerText(),'29');
+    await r.keyboard.press('Tab');await r.locator('.raid-gear-0 .loot-action').click();
+    await select('M4A1');await action('装备主武器');assert.equal(await r.locator('#ammo-current').innerText(),'29');
+    await select('轻型防弹衣');await action('装备护甲');assert.match(await r.locator('#raid-armor-durability').innerText(),/120 \/ 120/);
+    assert.equal(await r.locator('#loot-grid .item-tile').filter({hasText:'受损重型防弹护甲'}).count(),1);
+    await select('受损重型防弹护甲');await action('装备护甲');assert.match(await r.locator('#raid-armor-durability').innerText(),/40 \/ 220/);
+  });
+  await check('field repair uses a real progress timer; movement interrupts without spending the kit',async()=>{
+    await select('标准维修包');await action('修复护甲');await r.clock.runFor(2000);
+    await r.keyboard.press('Tab');await r.keyboard.down('d');await r.clock.runFor(50);await r.keyboard.up('d');
+    await r.keyboard.press('Tab');assert.equal(await r.locator('#loot-grid .item-tile').filter({hasText:'标准维修包'}).count(),1);
+    assert.match(await r.locator('#raid-armor-durability').innerText(),/40 \/ 220/);
+    await select('标准维修包');await action('修复护甲');await r.keyboard.press('Tab');await r.clock.runFor(7200);await r.keyboard.press('Tab');
+    assert.match(await r.locator('#raid-armor-durability').innerText(),/120 \/ 220/);
+    assert.equal(await r.locator('#loot-grid .item-tile').filter({hasText:'标准维修包'}).count(),0);
+  });
+  await check('actual rectangular grids rotate items and protect repair kits without overlapping at laptop widths',async()=>{
+    await r.keyboard.press('Tab');await r.keyboard.press('h');
+    for(const name of ['便携发电机','自制维修包','高价值蓝钻'])await r.locator('.nearby-item').filter({hasText:name}).click();
+    await r.keyboard.press('h');await r.keyboard.press('Tab');
+    await select('自制维修包');
+    const before=await r.locator('#loot-grid .item-tile').filter({hasText:'自制维修包'}).getAttribute('data-footprint');
+    await action('旋转');assert.notEqual(await r.locator('#loot-grid .item-tile').filter({hasText:'自制维修包'}).getAttribute('data-footprint'),before);
+    await action('放入保护栏');assert.equal((await saved(r)).activeRaid.secureInventory[0].id,'repair_improvised');
+    await select('高价值蓝钻');await action('放入保护栏');assert.match(await r.locator('#secure-count').innerText(),/3 \/ 4/);
+    await r.locator('#organize-backpack').click();
+    for(const width of [1366,1024]){
+      await r.setViewportSize({width,height:768});
+      const grids=await r.evaluate(()=>['loot-grid','secure-grid'].map(id=>{
+        const grid=document.getElementById(id),bounds=grid.getBoundingClientRect();
+        const items=[...grid.querySelectorAll('.item-tile')].map(el=>{const b=el.getBoundingClientRect();return {x:b.x,y:b.y,w:b.width,h:b.height};});
+        return {width:bounds.width,items};
+      }));
+      for(const grid of grids){assert(grid.width>0);for(let i=0;i<grid.items.length;i++)for(let j=0;j<i;j++){
+        const a=grid.items[i],b=grid.items[j];assert(a.x+a.w<=b.x+1||b.x+b.w<=a.x+1||a.y+a.h<=b.y+1||b.y+b.h<=a.y+1,'overlapping rectangles');
+      }}
+      assert.equal(await r.evaluate(()=>/\p{Extended_Pictographic}/u.test(document.body.innerText)),false);
+      assert.equal(await r.locator('#deployment-transition').isVisible(),false);
+      await snapshot(r,'field-inventory-'+width);
+    }
+  });
+  await check('a searched container shows real footprint rectangles and transfers only fitting loot',async()=>{
+    const {page:c}=await newPage({reducedMotion:'reduce'});await ready(c,url);await lobby(c);
+    const fixture=map(false);fixture.lootPoints=[];fixture.containers=[{x:3,y:4,type:'filing_cabinet',searchDuration:0.1}];
+    await c.locator('#map-import').setInputFiles({name:'container.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(fixture))});
+    await c.waitForFunction(()=>document.getElementById('map-select').value.startsWith('imported-'));
+    await c.clock.install();await c.locator('#deploy-btn').click();await c.locator('#hud').waitFor({state:'visible'});
+    await c.clock.runFor(100);await c.keyboard.press('f');await c.clock.runFor(300);await c.keyboard.press('f');
+    assert(await c.locator('#container-loot-panel').isVisible());assert(await c.locator('#inventory-drawer').isVisible());
+    assert(await c.locator('#container-loot-grid .item-tile').count()>0);
+    await c.locator('#container-loot-grid .item-tile').first().click();
+    assert((await c.locator('#loot-count').innerText()).includes('格'));
+    await c.locator('#container-loot-all').click();await snapshot(c,'field-container');
+    await c.locator('#inventory-close').click();assert.equal(await c.locator('#container-loot-panel').isVisible(),false);
   });
 
   await check('corrupt local progress shows a recoverable error without overwriting the save',async()=>{
@@ -219,8 +297,8 @@ async function newPage(options={}){
   let revision=null;
   try { revision=require('node:child_process').execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(); } catch {}
   fs.writeFileSync(path.join(output,'browser-results.json'),JSON.stringify({
-    date:'2026-10-17',revision,browser:browser?await browser.version():null,
-    status:failure?'failed':'passed',passed:results.length,total:14,
+    date:'2026-10-18',revision,browser:browser?await browser.version():null,
+    status:failure?'failed':'passed',passed:results.length,total:18,
     methodology:'Real browser, real ES modules, isolated storage, public UI/file import, Playwright clock for timers, temporary loopback server closed after tests. No production state hooks.',
     results,screenshots,...(failure?{error:failure.stack||String(failure)}:{})
   },null,2)+'\n');

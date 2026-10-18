@@ -1,9 +1,10 @@
 // Anonymous, transactional single-player progression. No account or password state.
-import { equipmentError, loadoutCapacity, itemCategory } from './itemrules.js';
+import { equipmentError, loadoutCapacity, itemCategory, loadoutGridError } from './itemrules.js';
 export const STORAGE_KEY = '2d_delta_save_v1';
+import { packItems } from './inventory.js';
 const LEGACY_KEY = 'emoji_delta_profile';
 let profile = null;
-let maxEquipSlots = 12;
+let maxEquipSlots = 30;
 
 function saveError(message, code = 'SAVE_FAILED') {
   const error = new Error(message); error.code = code; return error;
@@ -23,7 +24,11 @@ function items(value = []) {
     if (!item || typeof item.id !== 'string' || !item.id || item.id.length > 100) throw saveError('本地进度损坏：物品无效', 'CORRUPT_SAVE');
     return { ...(Number.isInteger(item.rarity) ? { rarity: Math.max(1, Math.min(6, item.rarity)) } : {}),
       ...(item.durability !== undefined ? { durability: number(item.durability), maxDurability: number(item.maxDurability, item.durability) } : {}),
-      id: item.id, emoji: typeof item.emoji === 'string' ? item.emoji.slice(0, 24) : '📦',
+      ...(typeof item.instanceId === 'string' && item.instanceId.length <= 160 ? {instanceId:item.instanceId} : {}),
+      ...Object.fromEntries(['gridW','gridH','gridX','gridY'].filter(key => Number.isSafeInteger(item[key]) && item[key] >= (key === 'gridW' || key === 'gridH' ? 1 : 0) && item[key] <= 64).map(key => [key,item[key]])),
+      ...(typeof item.rotated === 'boolean' ? {rotated:item.rotated} : {}),
+      ...(item.weaponState && Number.isInteger(item.weaponState.currentAmmo) && item.weaponState.currentAmmo >= 0 && item.weaponState.currentAmmo <= 1000 ? {weaponState:{currentAmmo:item.weaponState.currentAmmo,cooldown:Number.isFinite(item.weaponState.cooldown) ? Math.max(0,Math.min(60,item.weaponState.cooldown)) : 0}} : {}),
+      id: item.id, emoji: typeof item.emoji === 'string' ? item.emoji.slice(0, 24) : '',
       name: typeof item.name === 'string' ? item.name.slice(0, 160) : item.id, value: number(item.value) };
   });
 }
@@ -37,7 +42,7 @@ function normalize(raw) {
   if (raw.activeRaid) {
     if (typeof raw.activeRaid.id !== 'string' || !raw.activeRaid.id) throw saveError('本地进度损坏：行动记录无效', 'CORRUPT_SAVE');
     next.activeRaid = { id: raw.activeRaid.id, equipped: items(raw.activeRaid.equipped), secureInventory: items(raw.activeRaid.secureInventory) };
-    if (next.activeRaid.secureInventory.length > 2 || next.activeRaid.secureInventory.some(item => !['valuable', 'key', 'medicine'].includes(itemCategory(item)))) throw saveError('本地进度损坏：保护栏无效', 'CORRUPT_SAVE');
+    if (!packItems(next.activeRaid.secureInventory,2,2,{allowRotation:true}).ok || next.activeRaid.secureInventory.some(item => !['valuable', 'key', 'medicine', 'repair'].includes(itemCategory(item)))) throw saveError('本地进度损坏：保护栏无效', 'CORRUPT_SAVE');
   }
   return next;
 }
@@ -77,18 +82,18 @@ export function getProfile() { return ensure(); }
 export function getCoins() { return ensure().coins; }
 export function getStash() { return ensure().stash; }
 export function getEquipped() { return ensure().equipped; }
-export function setMaxEquipSlots(n) { maxEquipSlots = Number.isFinite(n) ? Math.max(1, Math.floor(n)) : 12; }
+export function setMaxEquipSlots(n) { maxEquipSlots = Number.isFinite(n) ? Math.max(1, Math.floor(n)) : 30; }
 export function getMaxEquipSlots() { return loadoutCapacity(maxEquipSlots, getEquipped()); }
 export function getEquipError(item) {
   const equipped = getEquipped();
-  return equipmentError(item, equipped) || (equipped.length + 1 > loadoutCapacity(maxEquipSlots, [...equipped, item]) ? '携带容量不足' : '');
+  return equipmentError(item, equipped) || loadoutGridError(maxEquipSlots, [...equipped, item]);
 }
 export function getLoadoutError() {
   const accepted = [];
   for (const item of getEquipped()) {
     const error = equipmentError(item, accepted); if (error) return error; accepted.push(item);
   }
-  return accepted.length > getMaxEquipSlots() ? '携带物品超过当前特工容量，请先卸下多余物品' : '';
+  return loadoutGridError(maxEquipSlots, accepted);
 }
 export function addCoins(amount) {
   lobbyOnly(); if (!Number.isSafeInteger(amount) || amount < 0) throw new Error('无效金币数量');
@@ -118,7 +123,7 @@ export function equipItems(indices) {
   const next = clone(); let count = 0;
   for (const index of selected) {
     const item = next.stash[index];
-    if (equipmentError(item, next.equipped) || next.equipped.length + 1 > loadoutCapacity(maxEquipSlots, [...next.equipped,item])) continue;
+    if (equipmentError(item, next.equipped) || loadoutGridError(maxEquipSlots, [...next.equipped,item])) continue;
     next.equipped.push(next.stash.splice(index,1)[0]); count++;
   }
   if (count) persist(next);
@@ -153,13 +158,13 @@ export function beginRaid(id) {
   const error = getLoadoutError(); if (error) throw new Error(error);
   const equipped = profile.equipped.map(item => ({...item}));
   persist({ ...profile, equipped: [], activeRaid: { id, equipped, secureInventory: [] } });
-  return equipped;
+  return JSON.parse(JSON.stringify(equipped));
 }
 export function updateSecureInventory(id, inventory) {
   ensure();
   if (profile.activeRaid?.id !== id) throw new Error('行动已结束');
   const secured = items(inventory.map(item => ({ ...item, id: item.type || item.id })));
-  if (secured.length > 2 || secured.some(item => !['valuable', 'key', 'medicine'].includes(itemCategory(item)))) throw new Error('保护栏仅允许两件贵重品、钥匙或药品');
+  if (!packItems(secured,2,2,{allowRotation:true}).ok || secured.some(item => !['valuable', 'key', 'medicine', 'repair'].includes(itemCategory(item)))) throw new Error('保护栏为 2×2 格，仅可放入能容纳的贵重品、钥匙、药品或维修包');
   return transact(next => { next.activeRaid.secureInventory = secured; });
 }
 export function settleRaid(id, survived, gear = [], inventory = [], bonus = 0, summary = {}) {
@@ -169,12 +174,12 @@ export function settleRaid(id, survived, gear = [], inventory = [], bonus = 0, s
   const carried = list => list.map(item => ({ ...item, id: item.type || item.id, value: item.value ?? 0 }));
   const secured = summary.secureInventory || [];
   const recovered = survived ? [...inventory, ...secured] : secured;
-  const newLoot = recovered.filter(item => !item.broughtIn);
+  const newLoot = [...recovered, ...(survived ? gear : [])].filter(item => !item.broughtIn);
   const value = newLoot.reduce((sum,item) => sum + (item.value || 0),0);
   const next = clone();
   next.activeRaid = null;
-  next.equipped = survived ? items([...gear, ...carried(recovered.filter(item => item.broughtIn))]) : [];
-  next.stash.push(...items(carried(survived ? newLoot : recovered)));
+  next.equipped = survived ? items([...carried(gear), ...carried(recovered.filter(item => item.broughtIn))]) : [];
+  next.stash.push(...items(carried(survived ? recovered.filter(item => !item.broughtIn) : recovered)));
   next.coins += (survived ? number(bonus) - cost : 0);
   next.stats.raids++; next.stats[survived ? 'extracts' : 'deaths']++;
   next.stats.kills += number(summary.kills);

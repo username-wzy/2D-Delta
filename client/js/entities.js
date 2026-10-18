@@ -68,7 +68,8 @@ export class Player {
     this.raidTimeRemaining = 600;
     this.raidOutcome = '';
     this.action = null;
-    this.maxSlots = op.maxSlots || 12;
+    this.baseSlots = op.maxSlots || 30;
+    this.maxSlots = this.baseSlots;
   }
 }
 
@@ -156,6 +157,13 @@ export function applyLootData(loot, def) {
   loot.onPickup = def.onPickup || null;
   loot.rarity = def.rarity ?? 1;
   loot.useTime = def.useTime ?? 3;
+  loot.gridW = def.gridW ?? 1; loot.gridH = def.gridH ?? 1;
+  loot.repairAmount = def.repairAmount ?? 0;
+  if (def.id?.startsWith('armor_')) {
+    const heavy = def.id === 'armor_heavy';
+    loot.maxDurability = def.maxDurability ?? (heavy ? 220 : 120);
+    loot.durability = loot.maxDurability;
+  }
   loot.ammoType = def.ammoType || null;
   loot.ammoAmount = def.ammoAmount || 0;
 }
@@ -165,6 +173,8 @@ export class LootContainer {
     this.id = Math.random().toString();
     this.x = x;
     this.y = y;
+    this.gridCols = config.gridCols ?? (containerType === 'safe' ? 4 : 6);
+    this.gridRows = config.gridRows ?? (containerType === 'safe' ? 4 : containerType === 'wardrobe' ? 6 : 4);
     this.type = containerType; // 'safe', 'filing_cabinet', 'wardrobe'
     this.size = 48;
     this.isOpen = false;

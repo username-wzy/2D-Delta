@@ -1,8 +1,12 @@
 // Lobby transactions and raid results. Authentication is deliberately absent.
 import { getCoins, getStash, unequipItem, getEquipped, getMaxEquipSlots, getLoadoutError, getEquipError, equipItems, sellStashItems, sellAllStash, salePrice } from './economy.js';
 import { assetMarkup, setAssetIcon } from './assets.js';
-import { itemCategory, itemRarity, RARITY_NAMES } from './itemrules.js';
-import { initShell, showLobbyShell, closeShellDialogs, confirmAction, refreshShell, getShopFilter, setLobbyView } from './ui-shell.js';
+import { itemCategory, itemRarity, RARITY_NAMES, isGear } from './itemrules.js';
+import { itemDimensions, packItems, inventoryUsage } from './inventory.js';
+import { iconMarkup } from './icons.js';
+import { getLootDef } from './lootdata.js';
+import { initShell, showLobbyShell, closeShellDialogs, confirmAction, refreshShell, getShopFilter, setLobbyView, beginDeployment, endDeployment, hideShellScreens } from './ui-shell.js';
+export { beginDeployment, endDeployment } from './ui-shell.js';
 export { showHomeScreen } from './ui-shell.js';
 
 const byId = id => document.getElementById(id);
@@ -16,6 +20,8 @@ const deployBtn = byId('deploy-btn');
 const hudOverlay = byId('hud');
 let selectedStashIndices = new Set();
 let shopItems = [];
+let stashPage = 0;
+const STASH_PAGE_SIZE = 16;
 
 export function initLobbyUI() {
   initShell({ onEnter: showStartScreen, refresh: refreshLobbyUI, refreshShop: refreshShopUI });
@@ -47,17 +53,40 @@ function createItemButton(item, title) {
   button.type = 'button';
   button.className = 'stash-item';
   button.dataset.rarity = itemRarity(item);
-  title += ` · ${RARITY_NAMES[itemRarity(item)-1]}${item.durability !== undefined ? ' · 耐久 ' + item.durability + '/' + item.maxDurability : ''}`;
-  setAssetIcon(button, item);
+  const footprint = itemDimensions(item);
+  title += ` · ${footprint.w} × ${footprint.h} 格 · ${RARITY_NAMES[itemRarity(item)-1]}${item.durability !== undefined ? ' · 耐久 ' + item.durability + '/' + item.maxDurability : ''}`;
+  const art = document.createElement('span'); art.className = 'loot-item-art';
+  setAssetIcon(art, item, { fallback: '' }); button.appendChild(art);
   button.title = title;
   button.setAttribute('aria-label', title);
   const label = document.createElement('span');
   label.className = 'item-label';
   label.textContent = item.name || '物品';
   button.appendChild(label);
+  const size = document.createElement('span'); size.className = 'item-footprint'; size.textContent = `${footprint.w}×${footprint.h}`; button.appendChild(size);
   return button;
 }
-function refreshStashUI() {
+function positionStorageItem(button, placement) {
+  button.classList.add('item-tile');
+  button.style.gridColumn = `${placement.x + 1} / span ${placement.w}`;
+  button.style.gridRow = `${placement.y + 1} / span ${placement.h}`;
+  button.dataset.footprint = `${placement.w}x${placement.h}`;
+  button.dataset.verticalWeapon = String(itemCategory(placement.item) === 'weapon' && placement.h > placement.w);
+}
+function prepareStorageGrid(grid, items, cols, fixedRows = null) {
+  grid.innerHTML = ''; grid.classList.add('item-grid');
+  let rows = fixedRows || Math.max(6, Math.ceil(inventoryUsage(items) / cols));
+  let result = packItems(items, cols, rows, {allowRotation:true});
+  if (!fixedRows) while (!result.ok && rows < 64) { rows++; result = packItems(items, cols, rows, {allowRotation:true}); }
+  grid.style.setProperty('--grid-cols', cols); grid.style.setProperty('--grid-rows', rows);
+  grid.setAttribute('aria-label', `${cols} 列 · ${rows} 行物品网格`);
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const cell = document.createElement('span'); cell.className = 'inventory-cell';
+    cell.style.gridColumn = String(x + 1); cell.style.gridRow = String(y + 1); cell.setAttribute('aria-hidden','true'); grid.appendChild(cell);
+  }
+  return result;
+}
+function refreshStashUI({ preserveSelection = false } = {}) {
   const grid = byId('stash-grid');
   if (!grid) return;
   const coinsEl = byId('stash-coins');
@@ -70,7 +99,7 @@ function refreshStashUI() {
   const stash = getStash();
   const equipped = getEquipped();
   const loadoutError = getLoadoutError();
-  if (capText) capText.textContent = `容量 ${getMaxEquipSlots()}`;
+  if (capText) capText.textContent = `${inventoryUsage(equipped.filter(item => !isGear(item)))} / ${getMaxEquipSlots()} 格`;
   deployBtn.disabled = Boolean(loadoutError);
   deployBtn.title = loadoutError || '部署进入战区';
   const feedback = byId('lobby-feedback');
@@ -80,9 +109,21 @@ function refreshStashUI() {
   }
   if (coinsEl) coinsEl.textContent = `₡ ${getCoins().toLocaleString()}`;
   if (byId('stash-total')) byId('stash-total').textContent = String(stash.length);
-  grid.innerHTML = '';
-  selectedStashIndices.clear();
-  if (selectAllCB) { selectAllCB.checked = false; selectAllCB.disabled = !stash.length; selectAllCB.indeterminate = false; }
+  const pageCount = Math.max(1, Math.ceil(stash.length / STASH_PAGE_SIZE));
+  stashPage = Math.min(stashPage, pageCount - 1);
+  const pageStart = stashPage * STASH_PAGE_SIZE;
+  const pageItems = stash.slice(pageStart, pageStart + STASH_PAGE_SIZE);
+  const stashLayout = prepareStorageGrid(grid, pageItems, 8);
+  if (!preserveSelection) selectedStashIndices.clear();
+  const pager = byId('stash-page-controls');
+  if (pager) {
+    pager.innerHTML = '';
+    const previous = document.createElement('button'); previous.type = 'button'; previous.className = 'text-btn'; previous.textContent = '上一页'; previous.disabled = stashPage === 0;
+    const next = document.createElement('button'); next.type = 'button'; next.className = 'text-btn'; next.textContent = '下一页'; next.disabled = stashPage >= pageCount - 1;
+    const label = document.createElement('span'); label.textContent = `${stashPage + 1} / ${pageCount} 页 · 每页最多 ${STASH_PAGE_SIZE} 件`;
+    previous.addEventListener('click', () => { stashPage--; refreshStashUI({preserveSelection:true}); }); next.addEventListener('click', () => { stashPage++; refreshStashUI({preserveSelection:true}); }); pager.append(previous,label,next);
+  }
+  if (selectAllCB) { selectAllCB.checked = pageItems.length > 0 && pageItems.every((_, i) => selectedStashIndices.has(pageStart + i)); selectAllCB.disabled = !pageItems.length; selectAllCB.indeterminate = !selectAllCB.checked && pageItems.some((_, i) => selectedStashIndices.has(pageStart + i)); }
   if (sellAllBtn) sellAllBtn.disabled = !stash.length;
   if (!stash.length) {
     const empty = document.createElement('div');
@@ -92,35 +133,72 @@ function refreshStashUI() {
     go.addEventListener('click', () => setLobbyView('supply'));
     empty.appendChild(go); grid.appendChild(empty);
   }
-  stash.forEach((item, index) => {
+  pageItems.forEach((item, localIndex) => {
+    const index = pageStart + localIndex;
     const title = `${item.name || '物品'} · 出售价 ₡${salePrice(item).toLocaleString()} · 点击选择`;
     const button = createItemButton(item, title);
     button.dataset.index = index;
-    button.setAttribute('aria-pressed', 'false');
+    button.classList.toggle('selected', selectedStashIndices.has(index));
+    button.setAttribute('aria-pressed', String(selectedStashIndices.has(index)));
     button.addEventListener('click', () => {
       if (selectedStashIndices.has(index)) selectedStashIndices.delete(index); else selectedStashIndices.add(index);
       const selected = selectedStashIndices.has(index);
       button.classList.toggle('selected', selected);
       button.setAttribute('aria-pressed', String(selected));
       if (selectAllCB) {
-        selectAllCB.checked = selectedStashIndices.size === stash.length;
-        selectAllCB.indeterminate = selectedStashIndices.size > 0 && selectedStashIndices.size < stash.length;
+        selectAllCB.checked = pageItems.every((_, i) => selectedStashIndices.has(pageStart + i));
+        selectAllCB.indeterminate = !selectAllCB.checked && pageItems.some((_, i) => selectedStashIndices.has(pageStart + i));
       }
       updateActionButtons();
     });
+    const placement = stashLayout.placements.find(value => value.index === localIndex);
+    if (placement) positionStorageItem(button, placement);
     grid.appendChild(button);
   });
   if (equipGrid) {
-    equipGrid.innerHTML = '';
-    if (!equipped.length) equipGrid.innerHTML = '<span class="stash-empty"><b>轻装出发</b>从仓库选择装备并点击“装备选中”。<br>也可直接使用特工的基础武器部署。</span>';
-    equipped.forEach((item, index) => {
+    const carried = equipped.filter(item => !isGear(item));
+    const rows = Math.max(1, Math.floor(getMaxEquipSlots() / 6));
+    const layout = prepareStorageGrid(equipGrid, carried, 6, rows);
+    const createCarried = (item, index) => {
       const button = createItemButton(item, `${item.name || '物品'} · 点击卸下至仓库`);
       button.addEventListener('click', () => {
         try { unequipItem(index); refreshLobbyUI(); pushBatchNotify(`已卸下 ${item.name || '物品'}`); }
         catch (error) { reportError(error); }
-      });
-      equipGrid.appendChild(button);
+      }); return button;
+    };
+    layout.placements.forEach(placement => {
+      const index = equipped.indexOf(placement.item);
+      const button = createCarried(placement.item, index); positionStorageItem(button, placement); equipGrid.appendChild(button);
     });
+    if (layout.overflow.length) {
+      const overflow = document.createElement('div'); overflow.className = 'grid-overflow'; overflow.style.gridColumn = '1 / span 6'; overflow.style.gridRow = String(rows + 1);
+      const note = document.createElement('span'); note.textContent = '容量超出，请卸下多余物品：'; overflow.appendChild(note);
+      layout.overflow.forEach(({item}) => {
+        const button = document.createElement('button'); button.type = 'button'; button.textContent = item.name || '卸下物品';
+        button.addEventListener('click', () => { try { unequipItem(equipped.indexOf(item)); refreshLobbyUI(); } catch (error) { reportError(error); } }); overflow.appendChild(button);
+      }); equipGrid.appendChild(overflow);
+    }
+    const gearGrid = byId('lobby-gear-grid');
+    if (gearGrid) {
+      gearGrid.innerHTML = '';
+      const descriptors = [
+        { label: '主武器', icon: 'weapon', item: equipped.filter(item => itemCategory(item) === 'weapon')[0] },
+        { label: '副武器', icon: 'weapon', item: equipped.filter(item => itemCategory(item) === 'weapon')[1] },
+        { label: '护甲', icon: 'armor', item: equipped.find(item => itemCategory(item) === 'armor') },
+        { label: '背包', icon: 'backpack', item: equipped.find(item => itemCategory(item) === 'backpack') },
+      ];
+      descriptors.forEach(({label, icon, item}) => {
+        const card = document.createElement('div'); card.className = 'lobby-gear-slot';
+        const caption = document.createElement('span'); caption.className = 'gear-label'; caption.textContent = label; card.appendChild(caption);
+        if (item) {
+          const button = createCarried(item, equipped.indexOf(item)); button.classList.add('gear-equipped-item'); card.appendChild(button);
+        } else {
+          const empty = document.createElement('span'); empty.className = 'gear-empty-art'; empty.innerHTML = iconMarkup(icon);
+          const hint = document.createElement('span'); hint.className = 'gear-name'; hint.textContent = '未装备'; card.append(empty, hint);
+        }
+        gearGrid.appendChild(card);
+      });
+    }
   }
   function updateActionButtons() {
     const selected = getSelectedStash();
@@ -136,10 +214,9 @@ function refreshStashUI() {
   }
   updateActionButtons();
   if (selectAllCB) selectAllCB.onchange = () => {
-    selectedStashIndices.clear();
     grid.querySelectorAll('.stash-item').forEach(button => {
       const index = Number(button.dataset.index);
-      if (selectAllCB.checked) selectedStashIndices.add(index);
+      if (selectAllCB.checked) selectedStashIndices.add(index); else selectedStashIndices.delete(index);
       button.classList.toggle('selected', selectAllCB.checked);
       button.setAttribute('aria-pressed', String(selectAllCB.checked));
     });
@@ -184,6 +261,7 @@ function matchesFilter(item, filter) {
   if (filter === 'all') return true;
   if (filter === 'armor') return ['armor', 'backpack'].includes(category);
   if (filter === 'supply') return ['ammo', 'grenade', 'key'].includes(category);
+  if (filter === 'repair') return category === 'repair';
   return category === filter;
 }
 function refreshShopUI() {
@@ -201,11 +279,15 @@ function refreshShopUI() {
     button.dataset.rarity = itemRarity(item);
     const canAfford = getCoins() >= item.price;
     button.disabled = !canAfford;
-    const art = document.createElement('span'); art.className = 'shop-emoji'; art.innerHTML = assetMarkup(item);
+    const art = document.createElement('span'); art.className = 'shop-emoji'; art.innerHTML = assetMarkup(item, { fallback: '' });
     const name = document.createElement('span'); name.className = 'shop-name'; name.textContent = item.name;
     const price = document.createElement('span'); price.className = 'shop-price'; price.textContent = `₡ ${item.price.toLocaleString()}`;
+    const size = itemDimensions(item);
+    const definition = getLootDef(item.type || item.id);
+    const repairInfo = itemCategory(item) === 'repair' ? ` · 修复 ${item.repairAmount ?? definition.repairAmount ?? 0} / ${item.useTime ?? definition.useTime ?? 0}s` : '';
+    const dimensions = document.createElement('span'); dimensions.className = 'shop-footprint'; dimensions.textContent = `${size.w} × ${size.h} 格${repairInfo}`;
     const hint = document.createElement('span'); hint.className = 'shop-buy-label'; hint.textContent = canAfford ? '采购 +' : '资金不足';
-    button.append(art, name, price, hint);
+    button.append(art, name, dimensions, price, hint);
     button.title = canAfford ? `采购 ${item.name}，存入仓库` : `资金不足，还差 ₡${(item.price - getCoins()).toLocaleString()}`;
     button.addEventListener('click', async () => {
       button.disabled = true;
@@ -221,12 +303,21 @@ function refreshShopUI() {
 }
 export function hideStartScreen() {
   closeShellDialogs();
-  startScreen.classList.add('hidden');
-  byId('home-screen')?.classList.add('hidden');
+  hideShellScreens();
   hudOverlay.classList.remove('hidden');
   const canvas = byId('gameCanvas'); if (canvas) { canvas.tabIndex = 0; canvas.focus({preventScroll:true}); }
 }
-export function onDeploy(callback) { deployBtn.addEventListener('click', callback); }
+let deploying = false;
+export function onDeploy(callback) {
+  deployBtn.addEventListener('click', async event => {
+    if (deploying || deployBtn.disabled) return;
+    deploying = true; beginDeployment();
+    try { await callback(event); }
+    catch (error) { reportError(error); }
+    finally { deploying = false; endDeployment(); }
+  });
+}
+
 function appendRaidStats(player) {
   if (!player) return;
   const row = document.createElement('div'); row.className = 'result-stats';
@@ -238,7 +329,7 @@ function appendRaidStats(player) {
 export function showGameOver(mapName = '当前战区', player = null) {
   resultModal.classList.remove('hidden');
   resultModal.dataset.outcome = 'failure';
-  resultModal.querySelector('.result-icon').textContent = '☠';
+  resultModal.querySelector('.result-icon').innerHTML = iconMarkup('failure');
   const timeout = player?.raidOutcome === 'timeout', abandoned = player?.raidOutcome === 'abandoned';
   resultTitle.textContent = timeout ? '未能及时撤离' : abandoned ? '已放弃行动' : '行动失败';
   resultTitle.style.color = 'var(--danger)';
@@ -250,17 +341,18 @@ export function showGameOver(mapName = '当前战区', player = null) {
 export function showVictory(player, totalValue = 0) {
   resultModal.classList.remove('hidden');
   resultModal.dataset.outcome = 'success';
-  resultModal.querySelector('.result-icon').textContent = '✓';
+  resultModal.querySelector('.result-icon').innerHTML = iconMarkup('check');
   resultTitle.textContent = '撤离成功';
   resultTitle.style.color = 'var(--accent)';
   resultDesc.textContent = `已将带出的物资安全存入仓库。本次战利品标价合计 ₡${totalValue.toLocaleString()}，可返回基地查看或出售。`;
   summaryLootContainer.innerHTML = '';
   appendRaidStats(player);
-  if (!player.inventory.length && !player.secureInventory?.length) {
+  const recovered = [...player.inventory, ...(player.secureInventory || []), ...(player.loadoutGear || []).filter(item => !item.broughtIn)];
+  if (!recovered.length) {
     const empty = document.createElement('p'); empty.className = 'dialog-note'; empty.textContent = '本次未携带额外战利品。'; summaryLootContainer.appendChild(empty);
   }
-  for (const item of [...player.inventory, ...(player.secureInventory || [])]) {
-    const slot = document.createElement('span'); setAssetIcon(slot, item); slot.title = item.name || '物资'; summaryLootContainer.appendChild(slot);
+  for (const item of recovered) {
+    const slot = document.createElement('span'); setAssetIcon(slot, item, { fallback: '' }); slot.title = item.name || '物资'; summaryLootContainer.appendChild(slot);
   }
   const info = document.createElement('div'); info.className = 'summary-note';
   info.textContent = `当前资金 ₡${getCoins().toLocaleString()} · 带出物资出售后获得资金`;

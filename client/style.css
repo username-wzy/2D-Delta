@@ -115,3 +115,120 @@
 #result-modal[data-outcome="failure"] .modal-box { border-top-color:var(--danger); }
 #result-modal[data-outcome="failure"] .result-icon { color:var(--danger); }
 @media(max-width:600px) { #extraction-banner { top:78px; } }
+
+/* Physical inventory grids: one cell has one size, every item spans its footprint. */
+.ui-icon{display:inline-block;width:20px;height:20px;flex-shrink:0;vertical-align:middle}
+.icon-btn .ui-icon{width:17px;height:17px}.container-loot-close .ui-icon{width:15px;height:15px}
+.loadout-note .ui-icon{color:#d5be8a;width:17px;height:17px}.extract-icon .ui-icon{width:31px;height:31px}
+.result-icon .ui-icon{width:58px;height:58px}.asset-fallback{font-family:var(--font-mono)}
+.item-grid{--grid-cols:6;--grid-rows:4;--grid-cell:48px;display:grid!important;grid-template-columns:repeat(var(--grid-cols),minmax(0,1fr))!important;grid-template-rows:repeat(var(--grid-rows),var(--grid-cell));grid-auto-rows:var(--grid-cell);gap:3px!important;align-content:start;position:relative;isolation:isolate;padding:0;min-height:0;flex-shrink:0}
+.inventory-cell{display:block;min-width:0;min-height:0;border:1px solid #3c493b;background:#121b13c9;z-index:0;pointer-events:none}
+.item-tile{position:relative!important;min-width:0!important;min-height:0!important;width:auto;height:auto!important;aspect-ratio:auto!important;display:block!important;border:1px solid color-mix(in srgb,var(--rarity,#819276) 64%,#263320)!important;border-bottom:3px solid var(--rarity,#819276)!important;background:linear-gradient(150deg,color-mix(in srgb,var(--rarity,#819276) 17%,#20281e),#111a14)!important;padding:0!important;z-index:1;overflow:hidden;color:#eef2e9;cursor:pointer;flex-shrink:0}
+.item-tile:hover{border-color:#c7db9a!important;background:linear-gradient(150deg,#36462d,#1b2a19)!important}
+.item-tile.selected{border-color:var(--accent)!important;box-shadow:inset 0 0 0 1px var(--accent),0 0 0 1px #c9f56855!important;z-index:2}
+.item-tile .loot-item-art{position:absolute;inset:8px 3px 17px;width:auto;height:auto;display:flex;align-items:center;justify-content:center}
+.item-tile .loot-item-art .asset-icon{display:block;width:100%;height:100%;max-width:none;max-height:none}
+.item-tile .loot-item-art .asset-weapons{height:100%}
+.item-tile .loot-item-name,.item-tile .item-label{position:absolute;bottom:2px;left:4px;right:4px;font-size:9px;line-height:1.35;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#dce5d6;z-index:2;margin:0;background:transparent}
+.item-tile .item-footprint{position:absolute;top:2px;left:4px;color:#c9d5c1;font:8px/1.3 var(--font-mono);letter-spacing:.02em;z-index:3;pointer-events:none}
+.item-tile>.asset-icon{position:absolute;inset:9px 4px 17px;width:calc(100% - 8px);height:calc(100% - 26px)}
+.item-tile .asset-tag{bottom:0;right:0;border-radius:0;font-size:7px}
+.item-tile .container-loot-pick{position:absolute;right:3px;top:3px;padding:1px 3px;min-height:0;border:0;background:#1a2716d9;color:#c9eaaa;font-size:8px;opacity:0;transition:opacity .15s}
+.item-tile:hover .container-loot-pick,.item-tile:focus-visible .container-loot-pick{opacity:1}
+.item-tile:focus-visible{outline-offset:1px;z-index:4}
+.grid-overflow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px;color:#d4be85;font-size:11px;background:#2a2517}
+.grid-overflow>button{padding:6px 8px;border:1px solid #927b47;font-size:10px}
+.grid-help{color:#82947d;font-size:10px;line-height:1.7;margin:-5px 0 9px}
+#inventory-drawer{container-type:inline-size;top:90px;left:20px;width:min(430px,44vw);max-height:calc(100dvh - 118px);padding:14px;overflow-y:auto;border-top:2px solid #becbaf;z-index:12;background:#121a15f7}
+.inventory-title{margin-bottom:13px;border-bottom:1px solid #3b4a37;padding-bottom:10px}.inventory-title h2{font-size:16px;font-weight:500;letter-spacing:.06em}.inventory-title .eyebrow{font-size:8px}
+#loot-grid{--grid-cell:calc((100cqw - 15px)/6)}
+.raid-equipment{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-bottom:17px}
+.raid-gear-slot{min-height:119px;position:relative;background:#1d271b;border:1px solid #45523e;padding:6px;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.gear-label{align-self:flex-start;color:#8e9f83;font-size:9px;line-height:1.4}
+.gear-art{height:37px;width:100%;display:flex;align-items:center;justify-content:center;color:#475b40}
+.gear-art .ui-icon{width:31px;height:31px}.gear-art .asset-icon{width:100%;height:100%}
+.gear-name{color:#c0ccb5;font-size:9px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;line-height:1.4}
+.raid-gear-slot .loot-action{margin-top:auto;border:0;border-top:1px solid #43563b;align-self:stretch;text-align:center;padding:4px 1px;min-height:22px;font-size:9px;background:#25321e;color:#c8d8b9}
+.raid-gear-slot .loot-action:disabled{background:transparent;color:#75856a;opacity:1;font-size:8px}
+.raid-gear-armor .gear-art{height:28px}.gear-durability{font:8px/1.3 var(--font-mono);color:#9eb98a;white-space:nowrap}
+.gear-durability-track{height:2px;background:#46573b;width:100%;overflow:hidden}.gear-durability-track>div{height:100%;background:#b6cf87;transform-origin:left}
+.backpack-header{margin-bottom:8px}.backpack-header>span:first-child{font-size:13px;color:#d5decc}
+.grid-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #394633;padding:3px 0 9px;margin-bottom:12px;color:#798c70;font-size:9px}
+.grid-toolbar .text-btn{font-size:10px;padding:4px 0}
+.secure-section{display:grid;grid-template-columns:minmax(0,1fr) 104px;gap:14px;margin-bottom:14px;align-items:start}
+.secure-header{margin:0 0 5px;font-size:11px}.secure-header>span:last-child{font-size:9px}.secure-note{margin:0;font-size:10px;color:#8b9d80;line-height:1.8;max-width:25em}.secure-section .text-btn{font-size:9px;padding:5px 0;color:#abbd99}
+#secure-grid{--grid-cell:50px;width:104px;grid-template-columns:repeat(2,50px)!important}
+.inventory-inspector{border:1px solid #546746;border-top:2px solid #a9bd84;padding:10px 11px;background:#1b2819;min-height:88px;position:sticky;bottom:-14px;z-index:5;box-shadow:0 -8px 14px #0d150de0}
+.inventory-inspector.is-empty{border-color:#3b4b32;border-top-width:1px;background:#172015;min-height:60px;display:flex;align-items:center}
+.inventory-inspector.is-empty>p{color:#8b9f7b;font-size:10px;line-height:1.8;max-width:32em}
+.inspector-heading{display:flex;align-items:baseline;justify-content:space-between;gap:10px;line-height:1.7}.inspector-heading>b{font-size:12px;font-weight:500;min-width:0;overflow-wrap:anywhere}.inspector-heading>span{color:#93a37f;font-size:8px;white-space:nowrap}
+.inspector-meta{font-size:9px;color:#a2b692;margin:3px 0 8px}.inspector-actions{display:flex;flex-wrap:wrap;gap:5px}
+.inspector-actions .loot-action{font-size:10px;padding:6px 8px;line-height:1.3;background:#2e4124;color:#d6e8c0;border:1px solid #5b7546;min-height:27px}
+.inspector-actions .loot-action:hover:not(:disabled){background:#445b32;border-color:#bfd798}
+.container-loot-panel{container-type:inline-size;width:min(430px,44vw);max-height:calc(100dvh - 134px);top:70px;padding:14px;gap:9px;z-index:11;background:#121a15f7}
+.container-loot-grid.item-grid{--grid-cell:calc((100cqw - (var(--grid-cols) - 1)*3px)/var(--grid-cols));overflow-y:auto;max-height:calc(100dvh - 294px);width:100%}
+.container-grid-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#8e9f81;font:9px var(--font-mono)}
+.container-loot-header{font-size:13px;font-weight:500}.container-loot-all{min-height:35px;background:#425832}
+.container-loot-panel:not(.hidden)~.nearby-panel:not(.hidden){right:calc(min(430px,44vw) + 12px);width:230px}
+.lobby-gear-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:13px 16px 0}
+.lobby-gear-slot{display:flex;flex-direction:column;min-height:94px;border:1px solid #3d4f34;background:#1a2518;padding:5px;align-items:center;min-width:0}
+.lobby-gear-slot>.gear-label{margin-bottom:4px}.gear-empty-art{height:47px;display:flex;align-items:center;color:#45563c}.gear-empty-art .ui-icon{width:30px;height:30px}
+.lobby-gear-slot>.gear-equipped-item{height:63px;aspect-ratio:auto;width:100%;border:0;border-bottom:2px solid var(--rarity);padding:1px;background:#26341e}
+.lobby-gear-slot .gear-equipped-item>.asset-icon{width:100%;height:100%}.lobby-gear-slot .gear-equipped-item .item-label{bottom:1px;font-size:7px;text-align:center}.lobby-gear-slot .item-footprint{display:none}
+.carried-panel,.storage-panel{container-type:inline-size}
+.carried-panel{overflow:auto}.carried-panel>*{flex-shrink:0}
+.carried-grid-label{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 6px;font-size:11px;color:#ccd9bf}.carried-grid-label>span:last-child{font-size:9px;color:#819573}
+#equipped-grid.item-grid{--grid-cell:calc((100cqw - 32px - 15px)/6);margin:0 16px;grid-template-rows:repeat(var(--grid-rows),var(--grid-cell));padding:0;overflow:visible;flex:0;min-height:0}
+#stash-grid.item-grid{--grid-cell:calc((100cqw - 32px - 21px)/8);margin:0 16px 16px;padding:0;overflow:visible;min-height:0}
+#stash-grid>.stash-empty{grid-column:1/-1;grid-row:1/span 4;z-index:2;background:#152014e8;margin:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.9;min-height:120px;padding:16px}
+.stash-page-controls{display:flex;justify-content:space-between;align-items:center;padding:6px 16px;gap:10px;color:#859979;font-size:9px}
+.stash-page-controls>.text-btn{font-size:9px;padding:5px 0}
+.storage-panel{overflow:auto;display:flex;flex-direction:column}
+.storage-panel>.stash-header{position:sticky;top:0;background:#172114;z-index:4;flex-shrink:0}.storage-panel>.stash-actions{position:sticky;bottom:0;z-index:4;background:#162014;margin-top:auto;flex-shrink:0}
+.stash-actions .selection-count{font-size:9px}
+.storage-layout{grid-template-columns:minmax(320px,.75fr) minmax(0,1.5fr)}
+.shop-footprint{color:#8c9f7c;font:9px var(--font-mono);margin-top:2px}
+.deployment-transition{position:fixed;inset:0;z-index:45;display:flex;align-items:center;justify-content:center;background:#10170ff0;backdrop-filter:blur(7px);padding:24px}
+.transition-frame{width:min(480px,90vw);padding:34px 36px;border-top:2px solid var(--accent);border-bottom:1px solid #60744b;background:#192417e8;position:relative;overflow:hidden}
+.transition-frame>.eyebrow{font-size:9px;color:#8eaa77}
+.transition-frame h2{font:500 33px/1.4 var(--font-sans);margin:24px 0 10px;letter-spacing:.06em}
+.transition-frame p{font-size:11px;line-height:1.9;color:#a5b995}.transition-track{height:3px;background:#3a4e2d;margin-top:26px;overflow:hidden}.transition-track>span{display:block;height:100%;width:36%;background:var(--accent);animation:deployment-sweep 1.2s ease-in-out infinite}
+.transition-hint{display:block;font-size:9px;color:#698357;letter-spacing:.06em;margin-top:13px}
+.transition-symbol{position:absolute;right:35px;top:27px;display:flex;gap:4px;transform:skewX(-20deg)}.transition-symbol>i{display:block;width:9px;height:24px;background:var(--accent);opacity:.9}.transition-symbol>i:nth-child(2){opacity:.45}.transition-symbol>i:nth-child(3){opacity:.2}
+@keyframes deployment-sweep{from{transform:translateX(-100%)}to{transform:translateX(380%)}}
+@media(max-width:1100px){.storage-layout{grid-template-columns:minmax(300px,.8fr) minmax(0,1.2fr);gap:14px}.lobby-gear-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lobby-gear-slot{min-height:86px}.lobby-gear-slot>.gear-equipped-item{height:58px}.stash-actions{flex-wrap:wrap}.stash-actions #sell-all-btn{margin-left:0}}
+@media(max-width:900px){.storage-layout{grid-template-columns:1fr}.lobby-gear-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.carried-panel,.storage-panel{min-height:0;max-height:none;overflow:visible}.storage-panel>.stash-header,.storage-panel>.stash-actions{position:static}#equipped-grid.item-grid{--grid-cell:calc((100cqw - 32px - 15px)/6);max-height:none}#stash-grid.item-grid{max-height:none}.container-loot-panel{top:66px;width:44vw;max-height:calc(100dvh - 120px)}#inventory-drawer{width:46vw;left:12px;top:80px;max-height:calc(100dvh - 100px);padding:10px}.raid-equipment{gap:3px}.raid-gear-slot{padding:4px;min-height:112px}.gear-name{font-size:8px}.gear-durability{font-size:7px}.inspector-heading{flex-wrap:wrap;gap:2px}.container-loot-grid.item-grid{max-height:calc(100dvh - 275px)}}
+@media(max-width:600px){#inventory-drawer{width:calc(100vw - 24px);max-height:calc(100dvh - 100px)}.container-loot-panel{width:calc(100vw - 24px);right:0;z-index:13;max-height:calc(100dvh - 150px);top:66px}.container-loot-panel:not(.hidden)~.nearby-panel:not(.hidden){right:0;top:120px;z-index:10}.secure-section{grid-template-columns:minmax(0,1fr) 104px}.inventory-inspector{bottom:-10px}.lobby-gear-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.transition-track>span{animation:none;transform:none;width:100%}}.reduced-motion .transition-track>span{animation:none;transform:none;width:100%}
+
+/* Empty cells establish square row tracks; artwork keeps its own aspect ratio. */
+.item-grid,#equipped-grid.item-grid{grid-template-rows:repeat(var(--grid-rows),auto)!important;grid-auto-rows:auto!important;flex:0 0 auto!important;align-items:stretch}
+.inventory-cell{aspect-ratio:1}
+#stash-grid.item-grid{width:calc(100% - 32px);max-width:640px;margin:0 auto 16px;flex:0 0 auto}
+.item-tile .loot-item-art,.gear-equipped-item .loot-item-art{container-type:size;position:absolute;inset:10px 4px 16px;display:flex;align-items:center;justify-content:center;width:auto;height:auto;overflow:visible}
+.item-tile .loot-item-art .asset-icon,.gear-equipped-item .loot-item-art .asset-icon{position:relative;flex-shrink:0;width:min(100cqw,100cqh);height:min(100cqw,100cqh)}
+.item-tile .loot-item-art .asset-weapons,.gear-equipped-item .loot-item-art .asset-weapons{width:min(100cqw,200cqh);height:min(50cqw,100cqh)}
+.item-tile[data-vertical-weapon="true"] .loot-item-art .asset-weapons{width:min(100cqh,200cqw);height:min(50cqh,100cqw);transform:rotate(-90deg)}
+.gear-art{container-type:size}.gear-art .asset-icon{width:min(100cqw,100cqh);height:min(100cqw,100cqh)}.gear-art .asset-weapons{width:min(100cqw,200cqh);height:min(50cqw,100cqh)}
+.gear-equipped-item .loot-item-art{inset:1px 1px 12px}
+.item-tile>.asset-icon{inset:initial}
+#secure-grid .inventory-cell{aspect-ratio:1}
+
+.assets-inventory-ready .asset-inventory .asset-art,.assets-valuables-ready .asset-valuables .asset-art,.assets-world-ready .asset-world .asset-art{display:block}
+.assets-inventory-ready .asset-inventory .asset-fallback,.assets-valuables-ready .asset-valuables .asset-fallback,.assets-world-ready .asset-world .asset-fallback{display:none}
+.item-tile .asset-tag{display:none}
+
+.inventory-storage-layout{display:grid;grid-template-columns:minmax(0,1fr) 100px;gap:13px;align-items:start}
+.backpack-column{min-width:0}.secure-section{display:flex;flex-direction:column;gap:7px;margin:0;border-left:1px solid #3c4a34;padding-left:10px;min-width:0}
+.secure-section .secure-header{display:flex;flex-direction:column;align-items:flex-start;gap:4px;margin:0}.secure-section .secure-note{font-size:9px;line-height:1.8;margin-top:3px}
+#secure-grid{width:90px;grid-template-columns:repeat(2,minmax(0,1fr))!important;--grid-cell:43.5px}
+.backpack-header{font-size:11px}.backpack-header>span:first-child{font-size:11px}.backpack-header>span:last-child{font-size:9px}.grid-help{font-size:9px}
+.grid-toolbar{font-size:8px;margin-bottom:9px;padding-bottom:3px}.grid-toolbar .text-btn{font-size:9px}
+.weapon-specs{min-width:0;flex:1}.weapon-name{white-space:normal;overflow-wrap:anywhere;font-size:10px;line-height:1.5}
+.weapon-info{gap:8px}.weapon-icon{flex-shrink:0;width:78px}.weapon-icon .asset-weapons{width:76px;height:38px}
+@media(max-width:900px){.inventory-storage-layout{grid-template-columns:minmax(0,1fr) 90px;gap:9px}.secure-section{padding-left:7px}#secure-grid{width:82px}.grid-toolbar>span{font-size:7px}}
+
+.wp-slot>.ui-icon{width:24px;height:24px;color:#667b56}.weapon-icon>.ui-icon{width:45px;height:35px;color:#7e926e}
+
+/* Readable text labels replace the former stat pictograms. */
+.op-stat-row>span:first-child{width:26px;min-width:26px;font-size:8px;white-space:nowrap}
