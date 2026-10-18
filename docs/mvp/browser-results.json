@@ -1,10 +1,10 @@
 {
-  "date": "2026-10-17",
-  "revision": "f6ad078c6abcc14d7aee109b689fdef9cfdc57d5",
+  "date": "2026-10-18",
+  "revision": "e5856583c58079c972809901b8a0fb281feda063",
   "browser": "155.0.8059.82",
   "status": "passed",
-  "passed": 14,
-  "total": 14,
+  "passed": 18,
+  "total": 18,
   "methodology": "Real browser, real ES modules, isolated storage, public UI/file import, Playwright clock for timers, temporary loopback server closed after tests. No production state hooks.",
   "results": [
     {
@@ -28,7 +28,7 @@
       "passed": true
     },
     {
-      "name": "factory deploy renders all four atlases and consumes the lobby reservation",
+      "name": "factory deploy renders characters, weapons and generated scenery and consumes the lobby reservation",
       "passed": true
     },
     {
@@ -44,7 +44,7 @@
       "passed": true
     },
     {
-      "name": "all 37 assets render transparently; valuable Emoji and optional artwork fallback remain usable",
+      "name": "all 73 assets render transparently; valuable sprites and neutral missing-art silhouettes remain usable",
       "passed": true
     },
     {
@@ -53,6 +53,22 @@
     },
     {
       "name": "map editor round trip preserves paid exits, ground loot and an explicit zero bot count",
+      "passed": true
+    },
+    {
+      "name": "field pickup equips a gun and armor through item inspector; magazine and replaced gear survive swaps",
+      "passed": true
+    },
+    {
+      "name": "field repair uses a real progress timer; movement interrupts without spending the kit",
+      "passed": true
+    },
+    {
+      "name": "actual rectangular grids rotate items and protect repair kits without overlapping at laptop widths",
+      "passed": true
+    },
+    {
+      "name": "a searched container shows real footprint rectangles and transfers only fitting loot",
       "passed": true
     },
     {
@@ -77,6 +93,9 @@
     "protected-inventory.png",
     "extracted.png",
     "defeated.png",
+    "field-inventory-1366.png",
+    "field-inventory-1024.png",
+    "field-container.png",
     "save-error.png"
   ]
 }

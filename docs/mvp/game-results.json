@@ -1,8 +1,9 @@
 {
-  "date": "2026-10-17",
+  "date": "2026-10-18",
+  "revision": "e5856583c58079c972809901b8a0fb281feda063",
   "methodology": "Real ES modules in isolated VM; DOM, storage, audio, renderer and scheduler are doubles. Controlled game steps are <= 0.1 seconds.",
-  "passed": 25,
-  "total": 25,
+  "passed": 32,
+  "total": 32,
   "results": [
     {
       "id": "B01: carried red/blue/green keys unlock only matching safes",
@@ -49,7 +50,7 @@
       "passed": true
     },
     {
-      "id": "B11: lobby capacity updates immediately; duplicate gear and overload are blocked",
+      "id": "B11: lobby grid capacity follows one backpack; overload and stash pagination remain usable",
       "passed": true
     },
     {
@@ -85,7 +86,7 @@
       "passed": true
     },
     {
-      "id": "MVP: two protected slots survive defeat, refresh, and retry without duplicates",
+      "id": "MVP: protected 2x2 grid survives defeat, refresh, and retry without duplicates",
       "passed": true
     },
     {
@@ -102,6 +103,34 @@
     },
     {
       "id": "MVP: paid exit debits exactly once, insufficient funds reject, timeout wins ties",
+      "passed": true
+    },
+    {
+      "id": "V2: picked guns equip into fixed slots without farming basic gear or reserve ammo",
+      "passed": true
+    },
+    {
+      "id": "V2: armor swaps preserve damaged durability and equipping failure is atomic",
+      "passed": true
+    },
+    {
+      "id": "V2: four repair kits restore configured amounts only after completing and never overfill",
+      "passed": true
+    },
+    {
+      "id": "V2: repair interruption consumes nothing and never repairs a replacement of the same type",
+      "passed": true
+    },
+    {
+      "id": "V2: big footprints, 2x2 protection and backpack shrink respect geometry",
+      "passed": true
+    },
+    {
+      "id": "V2: container pickup retains real weapon magazine and armor durability metadata",
+      "passed": true
+    },
+    {
+      "id": "V2: paused and settled events cannot equip, unequip or start repairs",
       "passed": true
     }
   ]
